@@ -17,7 +17,7 @@ package com.holonplatform.jpa.spring.boot.test;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.Test;

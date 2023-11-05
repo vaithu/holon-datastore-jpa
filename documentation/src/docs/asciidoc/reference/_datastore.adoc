@@ -225,7 +225,7 @@ IMPORTANT: This means that the JPA data model (the JPA _entity_ beans definition
 
 For this reason, the JPA `Datastore` implementation relies on the following conventions regarding *DataTarget*s and *Path*s definitions:
 
-* The *DataTarget* _name_ is interpreted as the *JPA _entity_ name* (i.e. the simple _entity_ class name or the name specified using the `name` attribute of the `javax.persistence.Entity` annotation).
+* The *DataTarget* _name_ is interpreted as the *JPA _entity_ name* (i.e. the simple _entity_ class name or the name specified using the `name` attribute of the `jakarta.persistence.Entity` annotation).
 * The *Path* _name_ is interpreted as a *JPA _entity_ attribute name*, supporting nested classes through the conventional _dot_ notation (e.g. `address.city`).
 
 For example, given a _table_ definition as follows:
@@ -255,7 +255,7 @@ include::{examplesdir}/com/holonplatform/datastore/jpa/examples/ExampleJpaDatast
 <2> Path property definition for the `value` JPA _entity_ attribute name
 <3> DataTarget definition for the `Test` JPA _entity_ name
 
-If the JPA _entity_ name is specified using the `name` attribute of the `javax.persistence.Entity` annotation, that name has to be used as `DataTarget` name. 
+If the JPA _entity_ name is specified using the `name` attribute of the `jakarta.persistence.Entity` annotation, that name has to be used as `DataTarget` name.
 
 For example, if `myName` is specified as JPA _entity_ name:
 
@@ -290,7 +290,7 @@ TIP: See <<JPABeanPropertyModel>> to learn how to create a _property model_ defi
 
 The link:{apidir}/com/holonplatform/datastore/jpa/JpaTarget.html[JpaTarget^] interface can be used to define a `DataTarget` using a *JPA _entity_ class definition* rather than the entity _name_. 
 
-The entity name used in persistence operations will be the entity class simple name or the name specified using the `name` attribute of the `javax.persistence.Entity` annotation, if available.
+The entity name used in persistence operations will be the entity class simple name or the name specified using the `name` attribute of the `jakarta.persistence.Entity` annotation, if available.
 
 Fo example, for the `Test` JPA entity class defined in the example of the previous section, a `JpaTarget` can be created in the following way:
 
@@ -512,9 +512,9 @@ include::{examplesdir}/com/holonplatform/datastore/jpa/examples/ExampleJpaDatast
 
 ==== Expression resolvers priority
 
-According to the standard convention, the `javax.annotation.Priority` annotation can be used on `ExpressionResolver` classes to indicate in what order the expression resolvers bound to the same _type resolution pair_ (i.e. the expression type handled by a resolver and the target expression type into which it will be resolved) must be applied.
+According to the standard convention, the `jakarta.annotation.Priority` annotation can be used on `ExpressionResolver` classes to indicate in what order the expression resolvers bound to the same _type resolution pair_ (i.e. the expression type handled by a resolver and the target expression type into which it will be resolved) must be applied.
 
-The less is the `javax.annotation.Priority` number assigned to a resolver, the higher will be it's priority order.
+The less is the `jakarta.annotation.Priority` number assigned to a resolver, the higher will be it's priority order.
 
 All the default JPA Datastore expression resolvers have the _minimum_ priority order, allowing to override their behavior and resolution strategies with custom expression resolvers with a higher assigned priority order (i.e. a priority number less then `Integer.MAX_VALUE`).
 

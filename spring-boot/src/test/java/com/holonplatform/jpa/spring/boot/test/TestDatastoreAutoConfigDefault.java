@@ -15,50 +15,33 @@
  */
 package com.holonplatform.jpa.spring.boot.test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Optional;
-
-import jakarta.persistence.EntityManagerFactory;
-
+import com.holonplatform.core.datastore.DataTarget;
+import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.property.PathProperty;
+import com.holonplatform.core.property.PropertyBox;
+import com.holonplatform.datastore.jpa.JpaTarget;
+import com.holonplatform.jpa.spring.boot.test.domain1.TestJpaDomain1;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.holonplatform.core.datastore.DataTarget;
-import com.holonplatform.core.datastore.Datastore;
-import com.holonplatform.core.property.PathProperty;
-import com.holonplatform.core.property.PropertyBox;
-import com.holonplatform.datastore.jpa.JpaDatastore;
-import com.holonplatform.datastore.jpa.JpaTarget;
-import com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore;
-import com.holonplatform.jpa.spring.SpringEntityManagerLifecycleHandler;
-import com.holonplatform.jpa.spring.boot.test.domain1.TestJpaDomain1;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-@ActiveProfiles("standard")
-public class TestDatastoreAutoConfigExists {
+public class TestDatastoreAutoConfigDefault {
 
 	@Configuration
 	@EnableAutoConfiguration
 	@EntityScan(basePackageClasses = TestJpaDomain1.class)
 	protected static class Config {
-
-		@Bean
-		public JpaDatastore datastore(EntityManagerFactory entityManagerFactory) {
-			TestDatastore ds = new TestDatastore(entityManagerFactory);
-			ds.setEntityManagerInitializer(SpringEntityManagerLifecycleHandler.create());
-			ds.setEntityManagerFinalizer(SpringEntityManagerLifecycleHandler.create());
-			ds.initialize();
-			return ds;
-		}
 
 	}
 
@@ -77,8 +60,6 @@ public class TestDatastoreAutoConfigExists {
 
 		assertNotNull(datastore);
 
-		assertTrue(datastore instanceof TestDatastore);
-
 		TestJpaDomain1 td = new TestJpaDomain1();
 		td.setKey(7L);
 		td.setStringValue("Test ds");
@@ -89,16 +70,6 @@ public class TestDatastoreAutoConfigExists {
 
 		Optional<Long> found = datastore.query().target(TARGET).filter(KEY.eq(7L)).findOne(KEY);
 		assertTrue(found.isPresent());
-
-	}
-
-	@SuppressWarnings("serial")
-	public static class TestDatastore extends DefaultJpaDatastore {
-
-		public TestDatastore(EntityManagerFactory entityManagerFactory) {
-			super();
-			setEntityManagerFactory(entityManagerFactory);
-		}
 
 	}
 

@@ -15,8 +15,8 @@
  */
 package com.holonplatform.datastore.jpa.examples;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
