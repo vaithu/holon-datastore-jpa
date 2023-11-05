@@ -30,9 +30,9 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.VIRTUAL_S
 import java.util.List;
 import java.util.Properties;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.spi.PersistenceProvider;
-import javax.persistence.spi.PersistenceProviderResolverHolder;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.spi.PersistenceProvider;
+import jakarta.persistence.spi.PersistenceProviderResolverHolder;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.junit.AfterClass;

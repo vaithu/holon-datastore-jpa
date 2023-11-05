@@ -27,8 +27,8 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TMS;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.VIRTUAL_STR;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

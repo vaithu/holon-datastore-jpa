@@ -19,20 +19,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.persistence.SharedCacheMode;
-import javax.persistence.ValidationMode;
+import jakarta.persistence.SharedCacheMode;
+import jakarta.persistence.ValidationMode;
 
 import org.eclipse.persistence.config.TargetDatabase;
 import org.hibernate.dialect.DB2400Dialect;
 import org.hibernate.dialect.DB2Dialect;
-import org.hibernate.dialect.DerbyTenSevenDialect;
+import org.hibernate.dialect.DerbyDialect;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.HANARowStoreDialect;
 import org.hibernate.dialect.HSQLDialect;
-import org.hibernate.dialect.InformixDialect;
-import org.hibernate.dialect.MySQL5Dialect;
-import org.hibernate.dialect.Oracle10gDialect;
-import org.hibernate.dialect.PostgreSQL82Dialect;
+import org.hibernate.dialect.MySQLDialect;
+import org.hibernate.dialect.OracleDialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.dialect.SQLServerDialect;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -329,23 +328,23 @@ class EntityManagerFactoryConfigurator {
 		case DB2_AS400:
 			return DB2400Dialect.class;
 		case DERBY:
-			return DerbyTenSevenDialect.class;
+			return DerbyDialect.class;
 		case H2:
 			return H2Dialect.class;
 		case HSQL:
 			return HSQLDialect.class;
-		case INFORMIX:
-			return InformixDialect.class;
+		/*case INFORMIX:
+			return InformixDialect.class;*/
 		case MYSQL:
-			return MySQL5Dialect.class;
+			return MySQLDialect.class;
 		case ORACLE:
-			return Oracle10gDialect.class;
+			return OracleDialect.class;
 		case POSTGRESQL:
-			return PostgreSQL82Dialect.class;
+			return PostgreSQLDialect.class;
 		case SQL_SERVER:
 			return SQLServerDialect.class;
 		case MARIADB:
-			return MySQL5Dialect.class;
+			return MySQLDialect.class;
 		case HANA:
 			return HANARowStoreDialect.class;
 		case SQLITE:

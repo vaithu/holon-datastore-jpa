@@ -17,8 +17,8 @@ package com.holonplatform.datastore.jpa.internal;
 
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import com.holonplatform.core.Expression;
 import com.holonplatform.core.ExpressionResolver;
@@ -492,8 +492,12 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			return operation.execute(entityManager);
 
 		} catch (DataAccessException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
 			throw e;
 		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
 			// check active transaction: avoid EntityManager finalization if present
@@ -792,7 +796,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 
 		/*
 		 * (non-Javadoc)
-		 * @see com.holonplatform.datastore.jpa.JpaDatastore.Builder#entityManagerFactory(javax.persistence.
+		 * @see com.holonplatform.datastore.jpa.JpaDatastore.Builder#entityManagerFactory(jakarta.persistence.
 		 * EntityManagerFactory)
 		 */
 		@Override

@@ -15,7 +15,7 @@
  */
 package com.holonplatform.jpa.spring.boot;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -51,7 +51,7 @@ public class JpaAutoConfiguration {
 	private final static Logger LOGGER = JpaDatastoreLogger.create();
 
 	@Configuration
-	@ConditionalOnMissingBean(name = { "javax.persistence.EntityManagerFactory",
+	@ConditionalOnMissingBean(name = { "jakarta.persistence.EntityManagerFactory",
 			"org.springframework.orm.jpa.LocalEntityManagerFactoryBean" })
 	@Import(JpaAutoConfigurationRegistrar.class)
 	static class JpaStackConfiguration implements InitializingBean {

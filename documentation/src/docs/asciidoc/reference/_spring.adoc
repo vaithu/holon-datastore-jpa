@@ -214,7 +214,7 @@ annotation can be used on Spring configuration classes to setup a full JPA envir
 
 * *DataSource:* If a `javax.sql.DataSource` type bean is not already registered in Spring context, a `DataSource` instance is created and configured using the link:holon-jdbc.html#DataSourceConfigProperties[Holon Platform DataSource configuration properties^]. See the link:holon-jdbc.html#DataSourceConfiguration[Holon Platform JDBC Module^] documentation for details.
 
-* *EntityManagerFactory:* A JPA `javax.persistence.EntityManagerFactory` bean is registered and configured, along with a suitable Spring `JpaVendorAdapter` instance for ORM configuration. A default Spring `LocalContainerEntityManagerFactoryBean` is used as `EntityManagerFactory` factory bean.
+* *EntityManagerFactory:* A JPA `jakarta.persistence.EntityManagerFactory` bean is registered and configured, along with a suitable Spring `JpaVendorAdapter` instance for ORM configuration. A default Spring `LocalContainerEntityManagerFactoryBean` is used as `EntityManagerFactory` factory bean.
 
 * *PlatformTransactionManager:* A `org.springframework.transaction.PlatformTransactionManager` bean is registered to enable the Spring transactions management APIs and conventions;
 
@@ -251,7 +251,7 @@ See the link:holon-jdbc.html#DataSourceConfigProperties[Holon Platform DataSourc
 
 ==== `EntityManagerFactory` configuration
 
-A Spring `LocalContainerEntityManagerFactoryBean` instance is used as `javax.persistence.EntityManagerFactory` implementation to ensure a full integration with Spring JPA architecture and provide functionalities such as automatic JPA persistence unit configuration without the need of a `persistence.xml` configuration file.
+A Spring `LocalContainerEntityManagerFactoryBean` instance is used as `jakarta.persistence.EntityManagerFactory` implementation to ensure a full integration with Spring JPA architecture and provide functionalities such as automatic JPA persistence unit configuration without the need of a `persistence.xml` configuration file.
 
 If a `persistence.xml` configuration file is not available, automatic persistence unit _entity_ classes configuration can be performed using one of the following `@EnableJpa` annotation attributes:
 
