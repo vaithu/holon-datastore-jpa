@@ -17,14 +17,14 @@ package com.holonplatform.datastore.jpa.test.suite;
 
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 
-import org.junit.Test;
-
 import com.holonplatform.datastore.jpa.JpaQueryHint;
 
-public class QueryHintTest extends AbstractJpaDatastoreSuiteTest {
+import org.junit.jupiter.api.Test;
+
+class QueryHintTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testQueryHint() {
+	void testQueryHint() {
 		getDatastore().query().target(JPA_TARGET).parameter(JpaQueryHint.QUERY_PARAMETER_HINT,
 				JpaQueryHint.create("jakarta.persistence.query.timeout", 1000)).count();
 	}

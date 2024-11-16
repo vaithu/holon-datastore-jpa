@@ -18,20 +18,20 @@ package com.holonplatform.datastore.jpa.test.suite;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
-import org.junit.Test;
-
 import com.holonplatform.core.query.QueryFunction;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.query.QueryFunction.Count;
 
-public class AggregationFunctionsTest extends AbstractJpaDatastoreSuiteTest {
+class AggregationFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testCount() {
+	void testCount() {
 
 		long result = getDatastore().query().target(JPA_TARGET).findOne(Count.create(STR)).orElse(-1L);
 		assertEquals(2, result);
@@ -42,29 +42,29 @@ public class AggregationFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testMinMax() {
+	void testMinMax() {
 		Optional<Long> key = getDatastore().query().target(JPA_TARGET).findOne(KEY.max());
 		assertTrue(key.isPresent());
-		assertEquals(new Long(2), key.get());
+		assertEquals(Long.valueOf(2), key.get());
 
 		key = getDatastore().query().target(JPA_TARGET).findOne(KEY.min());
 		assertTrue(key.isPresent());
-		assertEquals(new Long(1), key.get());
+		assertEquals(Long.valueOf(1), key.get());
 	}
 
 	@Test
-	public void testSum() {
+	void testSum() {
 		Optional<Long> sum = getDatastore().query().target(JPA_TARGET).findOne(QueryFunction.sum(KEY));
 		assertTrue(sum.isPresent());
-		assertEquals(new Long(3), sum.get());
+		assertEquals(Long.valueOf(3), sum.get());
 	}
 
 	@Test
-	public void testAvg() {
+	void testAvg() {
 		if (AbstractJpaDatastoreTestSuite.avgProjectionTest) {
 			Optional<Double> avg = getDatastore().query().target(JPA_TARGET).findOne(KEY.avg());
 			assertTrue(avg.isPresent());
-			assertEquals(new Double(1.5), avg.get());
+			assertEquals(Double.valueOf(1.5), avg.get());
 		}
 	}
 

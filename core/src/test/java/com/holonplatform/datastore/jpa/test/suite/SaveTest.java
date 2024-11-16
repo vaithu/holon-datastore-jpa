@@ -33,26 +33,26 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.LTMS;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestSampleData;
 
-public class SaveTest extends AbstractJpaDatastoreSuiteTest {
+class SaveTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testSaveAsInsert() {
+	void testSaveAsInsert() {
 		if (AbstractJpaDatastoreTestSuite.saveOperationTest) {
 			inTransaction(() -> {
 
@@ -81,7 +81,7 @@ public class SaveTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testSaveAsUpdate() {
+	void testSaveAsUpdate() {
 		if (AbstractJpaDatastoreTestSuite.saveOperationTest) {
 			inTransaction(() -> {
 

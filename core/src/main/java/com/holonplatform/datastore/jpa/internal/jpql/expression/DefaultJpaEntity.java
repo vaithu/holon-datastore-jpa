@@ -97,8 +97,8 @@ public class DefaultJpaEntity<T> implements JpaEntity<T> {
 			throw new IllegalArgumentException("Entity class [" + entityClass.getName() + "] not found in Metamodel");
 		}
 
-		if (type instanceof EntityType) {
-			this.entityName = ((EntityType<?>) type).getName();
+		if (type instanceof EntityType entityType) {
+			this.entityName = entityType.getName();
 		} else {
 			this.entityName = getEntityNameFromAnnotation(entityClass).orElse(entityClass.getSimpleName());
 		}
@@ -293,8 +293,8 @@ public class DefaultJpaEntity<T> implements JpaEntity<T> {
 	 * @return <code>true</code> if it is to be considered <code>null</code>
 	 */
 	private static boolean isNullIdValue(Object id, Class<?> type) {
-		if (type.isPrimitive() && (id instanceof Number)) {
-			return ((Number) id).longValue() == 0L;
+		if (type.isPrimitive() && (id instanceof Number number)) {
+			return number.longValue() == 0L;
 		}
 		return id == null;
 	}

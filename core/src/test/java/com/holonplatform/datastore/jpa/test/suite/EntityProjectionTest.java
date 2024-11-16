@@ -16,23 +16,23 @@
 package com.holonplatform.datastore.jpa.test.suite;
 
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.DataTarget;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.datastore.jpa.JpaTarget;
 import com.holonplatform.datastore.jpa.test.model.entity.Test1;
 
-public class EntityProjectionTest extends AbstractJpaDatastoreSuiteTest {
+class EntityProjectionTest extends AbstractJpaDatastoreSuiteTest {
 
 	private static final JpaTarget<Test1> TARGET = JpaTarget.of(Test1.class);
 
 	@Test
-	public void testEntityProjection1() {
+	void testEntityProjection1() {
 		if (AbstractJpaDatastoreTestSuite.entityProjectionTest) {
 
 			List<Test1> results = getDatastore().query().target(TARGET).filter(KEY.eq(1L)).sort(KEY.asc()).list(TARGET);
@@ -46,7 +46,7 @@ public class EntityProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testEntityProjection2() {
+	void testEntityProjection2() {
 		if (AbstractJpaDatastoreTestSuite.entityProjectionTest) {
 
 			List<Test1> results = getDatastore().query().target(DataTarget.named(Test1.class.getSimpleName()))

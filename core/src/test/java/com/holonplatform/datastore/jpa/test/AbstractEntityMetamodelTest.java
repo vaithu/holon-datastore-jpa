@@ -43,7 +43,7 @@ import com.holonplatform.datastore.jpa.test.model.metamodel.SingleIdEntity;
 import com.holonplatform.datastore.jpa.test.model.metamodel.SinglePrimitiveIdEntity;
 
 @SuppressWarnings("serial")
-public class AbstractEntityMetamodelTest {
+class AbstractEntityMetamodelTest {
 
 	protected static Datastore datastore;
 
@@ -52,7 +52,7 @@ public class AbstractEntityMetamodelTest {
 	}
 
 	@Test
-	public void testSingleId() {
+	void testSingleId() {
 
 		JpaEntity<SingleIdEntity> entity = getDatastore().create(EntityMetamodelCommodity.class)
 				.resolve(JpaTarget.of(SingleIdEntity.class));
@@ -77,7 +77,7 @@ public class AbstractEntityMetamodelTest {
 	}
 
 	@Test
-	public void testSinglePrimitiveId() {
+	void testSinglePrimitiveId() {
 
 		JpaEntity<SinglePrimitiveIdEntity> entity = getDatastore().create(EntityMetamodelCommodity.class)
 				.resolve(JpaTarget.of(SinglePrimitiveIdEntity.class));
@@ -102,7 +102,7 @@ public class AbstractEntityMetamodelTest {
 	}
 
 	@Test
-	public void testEmbeddedId() {
+	void testEmbeddedId() {
 
 		JpaEntity<EmbeddedIdEntity> entity = getDatastore().create(EntityMetamodelCommodity.class)
 				.resolve(JpaTarget.of(EmbeddedIdEntity.class));
@@ -133,7 +133,7 @@ public class AbstractEntityMetamodelTest {
 	}
 
 	@Test
-	public void testMultiEmbeddedId() {
+	void testMultiEmbeddedId() {
 
 		JpaEntity<MultiEmbeddedIdEntity> entity = getDatastore().create(EntityMetamodelCommodity.class)
 				.resolve(JpaTarget.of(MultiEmbeddedIdEntity.class));
@@ -167,7 +167,7 @@ public class AbstractEntityMetamodelTest {
 	}
 
 	@Test
-	public void testMultiIdClass() {
+	void testMultiIdClass() {
 
 		JpaEntity<IdClassEntity> entity = getDatastore().create(EntityMetamodelCommodity.class)
 				.resolve(JpaTarget.of(IdClassEntity.class));

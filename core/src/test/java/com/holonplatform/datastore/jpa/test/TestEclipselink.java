@@ -35,8 +35,9 @@ import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolverHolder;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertySet;
@@ -55,8 +56,8 @@ public class TestEclipselink extends AbstractJpaDatastoreTestSuite {
 
 	private static EntityManagerFactory entityManagerFactory;
 
-	@BeforeClass
-	public static void initDatastore() {
+	@BeforeAll
+	static void initDatastore() {
 
 		// init db
 		DataSourceBuilder.builder().url("jdbc:h2:mem:datastore2;DB_CLOSE_ON_EXIT=FALSE").username("sa")
@@ -100,8 +101,8 @@ public class TestEclipselink extends AbstractJpaDatastoreTestSuite {
 		TEST3_TEXT_P = PathProperty.create("text", String.class).parent(TEST3);
 	}
 
-	@AfterClass
-	public static void closeEmf() {
+	@AfterAll
+	static void closeEmf() {
 		entityManagerFactory.close();
 	}
 

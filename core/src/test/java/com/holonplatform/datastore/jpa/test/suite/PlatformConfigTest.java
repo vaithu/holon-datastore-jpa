@@ -15,21 +15,21 @@
  */
 package com.holonplatform.datastore.jpa.test.suite;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.holonplatform.datastore.jpa.ORMPlatform;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.datastore.jpa.dialect.DatanucleusDialect;
 import com.holonplatform.datastore.jpa.dialect.EclipselinkDialect;
 import com.holonplatform.datastore.jpa.dialect.HibernateDialect;
 import com.holonplatform.datastore.jpa.dialect.OpenJPADialect;
 import com.holonplatform.datastore.jpa.test.config.DatastoreConfigCommodity;
 
-public class PlatformConfigTest extends AbstractJpaDatastoreSuiteTest {
+class PlatformConfigTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testConfig() {
+	void testConfig() {
 
 		DatastoreConfigCommodity c = getDatastore().create(DatastoreConfigCommodity.class);
 

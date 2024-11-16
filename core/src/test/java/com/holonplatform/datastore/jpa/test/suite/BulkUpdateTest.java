@@ -21,22 +21,22 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.stream.Stream;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 
-public class BulkUpdateTest extends AbstractJpaDatastoreSuiteTest {
+class BulkUpdateTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testBulkUpdate() {
+	void testBulkUpdate() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkUpdate(JPA_TARGET).set(STR, "upd").set(NBOOL, false)
@@ -62,7 +62,7 @@ public class BulkUpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBulkUpdateNulls() {
+	void testBulkUpdateNulls() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkUpdate(JPA_TARGET).setNull(STR).set(DBL, 557.88)
@@ -79,7 +79,7 @@ public class BulkUpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBulkUpdatePropertyBox() {
+	void testBulkUpdatePropertyBox() {
 		inTransaction(() -> {
 
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
@@ -100,7 +100,7 @@ public class BulkUpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBulkUpdateAll() {
+	void testBulkUpdateAll() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkUpdate(JPA_TARGET).set(STR, "all").execute();

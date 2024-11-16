@@ -30,7 +30,7 @@ public class TestEclipselinkEntityMetamodel extends AbstractEntityMetamodelTest 
 	private static EntityManagerFactory entityManagerFactory;
 
 	@BeforeAll
-	public static void initDatastore() {
+	static void initDatastore() {
 
 		Properties props = new Properties();
 		props.setProperty(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML,
@@ -45,7 +45,7 @@ public class TestEclipselinkEntityMetamodel extends AbstractEntityMetamodelTest 
 	}
 
 	@AfterAll
-	public static void closeEmf() {
+	static void closeEmf() {
 		entityManagerFactory.close();
 	}
 

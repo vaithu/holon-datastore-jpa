@@ -22,24 +22,24 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.NST_STR;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 
-public class BulkInsertTest extends AbstractJpaDatastoreSuiteTest {
+class BulkInsertTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testBulkInsert() {
+	void testBulkInsert() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkInsert(JPA_TARGET, PropertySet.of(KEY, STR, NBOOL))
@@ -65,7 +65,7 @@ public class BulkInsertTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBulkInsertPropertySet() {
+	void testBulkInsertPropertySet() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkInsert(JPA_TARGET, PropertySet.of(PROPERTIES))
@@ -83,7 +83,7 @@ public class BulkInsertTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBulkInsertPropertySets() {
+	void testBulkInsertPropertySets() {
 		inTransaction(() -> {
 
 			OperationResult result = getDatastore().bulkInsert(JPA_TARGET, PropertySet.of(PROPERTIES))

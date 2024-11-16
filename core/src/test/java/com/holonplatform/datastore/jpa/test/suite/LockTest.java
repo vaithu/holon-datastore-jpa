@@ -18,9 +18,9 @@ package com.holonplatform.datastore.jpa.test.suite;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -28,16 +28,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-
 import com.holonplatform.core.property.PropertyBox;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.query.lock.LockAcquisitionException;
 import com.holonplatform.core.query.lock.LockQuery;
 
-public class LockTest extends AbstractJpaDatastoreSuiteTest {
+class LockTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testLockMode() {
+	void testLockMode() {
 
 		assertTrue(getDatastore().hasCommodity(LockQuery.class));
 
@@ -58,7 +58,7 @@ public class LockTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testLockFail() {
+	void testLockFail() {
 
 		assertTrue(getDatastore().hasCommodity(LockQuery.class));
 
@@ -98,7 +98,7 @@ public class LockTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testLockException() {
+	void testLockException() {
 
 		assertTrue(getDatastore().hasCommodity(LockQuery.class));
 

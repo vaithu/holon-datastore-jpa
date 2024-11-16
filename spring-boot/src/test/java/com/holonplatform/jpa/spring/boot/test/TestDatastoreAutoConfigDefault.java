@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-public class TestDatastoreAutoConfigDefault {
+class TestDatastoreAutoConfigDefault {
 
 	@Configuration
 	@EnableAutoConfiguration
@@ -56,7 +56,7 @@ public class TestDatastoreAutoConfigDefault {
 
 	@Transactional
 	@Test
-	public void testJpa() {
+	void testJpa() {
 
 		assertNotNull(datastore);
 

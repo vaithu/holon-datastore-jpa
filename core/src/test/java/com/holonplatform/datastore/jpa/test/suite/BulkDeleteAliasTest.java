@@ -23,20 +23,20 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST3_TEX
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.relational.SubQuery;
 import com.holonplatform.core.property.PropertyBox;
 
-public class BulkDeleteAliasTest extends AbstractJpaDatastoreSuiteTest {
+class BulkDeleteAliasTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testBulkDeleteSubquery() {
+	void testBulkDeleteSubquery() {
 		if (AbstractJpaDatastoreTestSuite.updateAliasTest) {
 
 			inTransaction(() -> {

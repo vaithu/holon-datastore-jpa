@@ -18,17 +18,17 @@ package com.holonplatform.datastore.jpa.test.suite;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 
-public class StringFunctionsTest extends AbstractJpaDatastoreSuiteTest {
+import org.junit.jupiter.api.Test;
+
+class StringFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testLower() {
+	void testLower() {
 		String str = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(STR.lower()).orElse(null);
 		assertNotNull(str);
 		assertEquals("one", str);
@@ -55,7 +55,7 @@ public class StringFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testUpper() {
+	void testUpper() {
 		String str = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(STR.upper()).orElse(null);
 		assertNotNull(str);
 		assertEquals("ONE", str);

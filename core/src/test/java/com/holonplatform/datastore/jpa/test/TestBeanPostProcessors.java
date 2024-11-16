@@ -26,10 +26,10 @@ import com.holonplatform.core.temporal.TemporalType;
 import com.holonplatform.datastore.jpa.test.model.entity.Test1;
 import com.holonplatform.datastore.jpa.test.model.entity.Test3;
 
-public class TestBeanPostProcessors {
+class TestBeanPostProcessors {
 
 	@Test
-	public void testBeanPropertyPostProcessors() {
+	void testBeanPropertyPostProcessors() {
 
 		BeanPropertySet<Test1> set = BeanPropertySet.create(Test1.class);
 

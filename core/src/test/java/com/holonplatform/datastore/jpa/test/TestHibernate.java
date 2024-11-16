@@ -30,8 +30,8 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.VIRTUAL_S
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertySet;
@@ -46,12 +46,12 @@ import com.holonplatform.datastore.jpa.test.model.entity.Test3;
 import com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite;
 import com.holonplatform.jdbc.DataSourceBuilder;
 
-public class TestHibernate extends AbstractJpaDatastoreTestSuite {
+class TestHibernate extends AbstractJpaDatastoreTestSuite {
 
 	private static EntityManagerFactory entityManagerFactory;
 
-	@BeforeClass
-	public static void initDatastore() {
+	@BeforeAll
+	static void initDatastore() {
 
 		// init db
 		DataSourceBuilder.builder().url("jdbc:h2:mem:datastore1;DB_CLOSE_ON_EXIT=FALSE").username("sa")
@@ -85,8 +85,8 @@ public class TestHibernate extends AbstractJpaDatastoreTestSuite {
 		TEST3_TEXT_P = PathProperty.create("text", String.class).parent(TEST3);
 	}
 
-	@AfterClass
-	public static void closeEmf() {
+	@AfterAll
+	static void closeEmf() {
 		entityManagerFactory.close();
 	}
 

@@ -21,17 +21,17 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.CLOB_SET_STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.holonplatform.core.property.PropertyBox;
 
-public class ClobTest extends AbstractJpaDatastoreSuiteTest {
+import org.junit.jupiter.api.Test;
+
+class ClobTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testClobString() {
+	void testClobString() {
 		inTransaction(() -> {
 
 			// query

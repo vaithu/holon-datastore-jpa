@@ -19,18 +19,18 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.holonplatform.core.property.PropertyBox;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.datastore.jpa.JpaDatastore;
 
-public class SharedEntityManagerTest extends AbstractJpaDatastoreSuiteTest {
+class SharedEntityManagerTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testSharedEntityManager() {
+	void testSharedEntityManager() {
 		assertTrue(getDatastore() instanceof JpaDatastore);
 
 		final JpaDatastore ds = (JpaDatastore) getDatastore();

@@ -31,22 +31,22 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_V;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestSampleData;
 
-public class InsertTest extends AbstractJpaDatastoreSuiteTest {
+class InsertTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testInsert() {
+	void testInsert() {
 
 		inTransaction(() -> {
 
@@ -78,7 +78,7 @@ public class InsertTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testInsertVirtual() {
+	void testInsertVirtual() {
 		inTransaction(() -> {
 
 			PropertyBox value = PropertyBox.builder(PROPERTIES_V).set(KEY, 301L).set(STR, "k301").set(NBOOL, true)

@@ -21,14 +21,14 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 
 import jakarta.persistence.LockModeType;
 
-import org.junit.Test;
-
 import com.holonplatform.datastore.jpa.JpaDatastore;
 
-public class LockModeTest extends AbstractJpaDatastoreSuiteTest {
+import org.junit.jupiter.api.Test;
+
+class LockModeTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testLock() {
+	void testLock() {
 		inTransaction(() -> {
 			getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L))
 					.parameter(JpaDatastore.QUERY_PARAMETER_LOCK_MODE, LockModeType.PESSIMISTIC_WRITE)

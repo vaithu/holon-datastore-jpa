@@ -17,12 +17,12 @@ package com.holonplatform.jpa.spring.boot;
 
 import jakarta.persistence.EntityManagerFactory;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.holonplatform.core.datastore.Datastore;
@@ -35,12 +35,11 @@ import com.holonplatform.spring.EnableDatastoreConfiguration;
  * 
  * @since 5.0.0
  */
-@Configuration
+@AutoConfiguration
 @ConditionalOnClass(JpaDatastore.class)
-@AutoConfigureAfter({ HibernateJpaAutoConfiguration.class, JpaAutoConfiguration.class })
+@AutoConfigureAfter({HibernateJpaAutoConfiguration.class, JpaAutoConfiguration.class})
 public class JpaDatastoreAutoConfiguration {
 
-	@Configuration
 	@ConditionalOnMissingBean({ JpaDatastore.class })
 	@ConditionalOnSingleCandidate(EntityManagerFactory.class)
 	@EnableDatastoreConfiguration

@@ -24,15 +24,15 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3_CODE_P;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3_TEXT_P;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.relational.RelationalTarget;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.QueryFilter;
@@ -46,7 +46,7 @@ public class QueryJoinsTest extends AbstractJpaDatastoreSuiteTest {
 	public final static PathProperty<String> STR_P = JPA_TARGET.property(TestDataModel.STR);
 
 	@Test
-	public void testJoins() {
+	void testJoins() {
 
 		int jpaMayVer = getDatastore().create(DatastoreConfigCommodity.class).getDialect()
 				.getSupportedJPAMajorVersion();
@@ -91,7 +91,7 @@ public class QueryJoinsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testRightJoins() {
+	void testRightJoins() {
 
 		if (AbstractJpaDatastoreTestSuite.rightJoinTest) {
 
@@ -112,7 +112,7 @@ public class QueryJoinsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testRecur() {
+	void testRecur() {
 
 		int jpaMayVer = getDatastore().create(DatastoreConfigCommodity.class).getDialect()
 				.getSupportedJPAMajorVersion();

@@ -33,7 +33,7 @@ import com.holonplatform.jpa.spring.EnableJpa;
 import com.holonplatform.jpa.spring.test.domain1.TestJpaDomain1;
 
 @ContextConfiguration(classes = TestEnableJpaFullSkipDs.Config.class)
-public class TestEnableJpaFullSkipDs extends AbstractEnableJpaTest {
+class TestEnableJpaFullSkipDs extends AbstractEnableJpaTest {
 
 	@PropertySource("test.properties")
 	@EnableJpa(entityPackageClasses = TestJpaDomain1.class, dataSourceReference = "testds")
@@ -55,7 +55,7 @@ public class TestEnableJpaFullSkipDs extends AbstractEnableJpaTest {
 	}
 
 	@Test
-	public void testDataSourceSkip() {
+	void testDataSourceSkip() {
 		assertTrue(dataSource instanceof BasicDataSource);
 	}
 

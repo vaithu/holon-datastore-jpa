@@ -18,6 +18,7 @@ package com.holonplatform.jpa.spring.boot;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -25,7 +26,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
@@ -41,16 +41,15 @@ import com.holonplatform.jpa.spring.boot.internal.JpaAutoConfigurationRegistrar;
  * 
  * @since 5.0.0
  */
-@Configuration
-@ConditionalOnClass({ LocalContainerEntityManagerFactoryBean.class, EntityManager.class })
+@AutoConfiguration
+@ConditionalOnClass({LocalContainerEntityManagerFactoryBean.class, EntityManager.class})
 @AutoConfigureAfter(DataSourcesAutoConfiguration.class)
-@AutoConfigureBefore({ DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class,
-		DataSourcesTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
+@AutoConfigureBefore({DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class,
+		DataSourcesTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 public class JpaAutoConfiguration {
 
 	private final static Logger LOGGER = JpaDatastoreLogger.create();
 
-	@Configuration
 	@ConditionalOnMissingBean(name = { "jakarta.persistence.EntityManagerFactory",
 			"org.springframework.orm.jpa.LocalEntityManagerFactoryBean" })
 	@Import(JpaAutoConfigurationRegistrar.class)

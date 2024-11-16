@@ -18,16 +18,16 @@ package com.holonplatform.datastore.jpa.test.suite;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class QueryRestrictionsTest extends AbstractJpaDatastoreSuiteTest {
+class QueryRestrictionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testRestrictions() {
+	void testRestrictions() {
 		List<String> str = getDatastore().query().target(JPA_TARGET).restrict(1, 0).sort(KEY.asc()).list(STR);
 		assertEquals(1, str.size());
 		assertEquals("One", str.get(0));

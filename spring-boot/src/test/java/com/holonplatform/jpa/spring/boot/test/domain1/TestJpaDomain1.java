@@ -16,11 +16,9 @@
 package com.holonplatform.jpa.spring.boot.test.domain1;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "test1")
@@ -30,13 +28,26 @@ public class TestJpaDomain1 implements Serializable {
 
 	@Id
 	@Column(name = "keycode")
-	private long key;
+	private Long key;
+
+	@Version
+	private int version;
 
 	@Column(name = "strv")
 	private String stringValue;
 
 	@Column(name = "decv")
 	private Double decimalValue;
+
+
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
 
 	public long getKey() {
 		return key;

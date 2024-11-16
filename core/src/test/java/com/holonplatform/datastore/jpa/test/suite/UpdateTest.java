@@ -32,23 +32,23 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_NOID;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_V;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestSampleData;
 
-public class UpdateTest extends AbstractJpaDatastoreSuiteTest {
+class UpdateTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testUpdate() {
+	void testUpdate() {
 		inTransaction(() -> {
 
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
@@ -93,7 +93,7 @@ public class UpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testUpdateVirtual() {
+	void testUpdateVirtual() {
 		inTransaction(() -> {
 
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES_V)
@@ -113,7 +113,7 @@ public class UpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testUpdateNulls() {
+	void testUpdateNulls() {
 		if (AbstractJpaDatastoreTestSuite.updateNullsTest) {
 			inTransaction(() -> {
 
@@ -135,7 +135,7 @@ public class UpdateTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testUpdateNoId() {
+	void testUpdateNoId() {
 		inTransaction(() -> {
 
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES_NOID)
