@@ -23,12 +23,12 @@ import org.junit.jupiter.api.BeforeAll;
 
 import com.holonplatform.datastore.jpa.JpaDatastore;
 
-public class TestHibernateEntityMetamodel extends AbstractEntityMetamodelTest {
+class TestHibernateEntityMetamodel extends AbstractEntityMetamodelTest {
 
 	private static EntityManagerFactory entityManagerFactory;
 
 	@BeforeAll
-	public static void initDatastore() {
+	static void initDatastore() {
 
 		entityManagerFactory = Persistence.createEntityManagerFactory("test_metamodel");
 
@@ -38,7 +38,7 @@ public class TestHibernateEntityMetamodel extends AbstractEntityMetamodelTest {
 	}
 
 	@AfterAll
-	public static void closeEmf() {
+	static void closeEmf() {
 		entityManagerFactory.close();
 	}
 

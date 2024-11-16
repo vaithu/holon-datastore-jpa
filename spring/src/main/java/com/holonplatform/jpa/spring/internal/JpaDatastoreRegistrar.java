@@ -216,7 +216,7 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 			String dialectClassName = datastoreConfig.getDialect();
 			if (dialectClassName != null) {
 				try {
-					ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName).newInstance();
+					ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName).getDeclaredConstructor().newInstance();
 					if (dialect != null) {
 						pvs.add("dialect", dialect);
 					}

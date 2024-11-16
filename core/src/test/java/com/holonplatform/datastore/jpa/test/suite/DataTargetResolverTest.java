@@ -17,23 +17,23 @@ package com.holonplatform.datastore.jpa.test.suite;
 
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 
-import org.junit.Test;
-
 import com.holonplatform.core.ExpressionResolver;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.DataTarget.DataTargetResolver;
 import com.holonplatform.core.datastore.relational.RelationalTarget;
 import com.holonplatform.datastore.jpa.JpaTarget;
 import com.holonplatform.datastore.jpa.test.model.entity.Test1;
 
-public class DataTargetResolverTest extends AbstractJpaDatastoreSuiteTest {
+class DataTargetResolverTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testDataTargetResolver() {
+	void testDataTargetResolver() {
 
 		@SuppressWarnings("rawtypes")
 		ExpressionResolver<DataTarget, DataTarget> dr = DataTargetResolver.create(DataTarget.class,
@@ -46,7 +46,7 @@ public class DataTargetResolverTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testRelationalTargetResolver() {
+	void testRelationalTargetResolver() {
 
 		@SuppressWarnings("rawtypes")
 		ExpressionResolver<DataTarget, DataTarget> dr = DataTargetResolver.create(DataTarget.class,

@@ -21,23 +21,23 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.NBOOL;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 
-import org.junit.Test;
-
 import com.holonplatform.core.property.PropertyBox;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.jpa.test.model.TestDataModel;
 
-public class BlobTest extends AbstractJpaDatastoreSuiteTest {
+class BlobTest extends AbstractJpaDatastoreSuiteTest {
 
 	private static final PropertySet<?> BLOB_SET_BYT = PropertySet.of(PROPERTIES, BLOB_BYS);
 
 	@Test
-	public void testBlobBytes() {
+	void testBlobBytes() {
 		if (AbstractJpaDatastoreTestSuite.blobArrayProjectionTest) {
 
 			inTransaction(() -> {

@@ -84,9 +84,9 @@ public class JpaDatastoreAutoConfigurationRegistrar
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
-		if (beanFactory instanceof ListableBeanFactory) {
+		if (beanFactory instanceof ListableBeanFactory factory) {
 			for (String[] emfDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry,
-					(ListableBeanFactory) beanFactory, EntityManagerFactory.class,
+					factory, EntityManagerFactory.class,
 					AbstractEntityManagerFactoryBean.class)) {
 				// register JPA Datastore
 				final String dataContextId = emfDefinition[1];

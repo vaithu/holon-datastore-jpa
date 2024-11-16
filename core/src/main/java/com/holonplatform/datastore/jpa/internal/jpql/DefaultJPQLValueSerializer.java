@@ -153,21 +153,21 @@ public enum DefaultJPQLValueSerializer implements JPQLValueSerializer {
 			LocalDate datePart = null;
 			LocalTime timePart = null;
 
-			if (value instanceof LocalDate) {
-				datePart = (LocalDate) value;
-			} else if (value instanceof LocalTime) {
-				timePart = (LocalTime) value;
-			} else if (value instanceof LocalDateTime) {
-				datePart = ((LocalDateTime) value).toLocalDate();
-				timePart = ((LocalDateTime) value).toLocalTime();
-			} else if (value instanceof OffsetTime) {
-				timePart = ((OffsetTime) value).toLocalTime();
-			} else if (value instanceof OffsetDateTime) {
-				datePart = ((OffsetDateTime) value).toLocalDate();
-				timePart = ((OffsetDateTime) value).toLocalTime();
-			} else if (value instanceof ZonedDateTime) {
-				datePart = ((ZonedDateTime) value).toLocalDate();
-				timePart = ((ZonedDateTime) value).toLocalTime();
+			if (value instanceof LocalDate date) {
+				datePart = date;
+			} else if (value instanceof LocalTime time) {
+				timePart = time;
+			} else if (value instanceof LocalDateTime time) {
+				datePart = time.toLocalDate();
+				timePart = time.toLocalTime();
+			} else if (value instanceof OffsetTime time) {
+				timePart = time.toLocalTime();
+			} else if (value instanceof OffsetDateTime time) {
+				datePart = time.toLocalDate();
+				timePart = time.toLocalTime();
+			} else if (value instanceof ZonedDateTime time) {
+				datePart = time.toLocalDate();
+				timePart = time.toLocalTime();
 			}
 
 			if (datePart != null || timePart != null) {

@@ -23,14 +23,14 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.STR;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_V;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Test;
-
 import com.holonplatform.core.Expression.InvalidExpressionException;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.property.PropertyBox;
@@ -43,10 +43,10 @@ import com.holonplatform.datastore.jpa.test.expression.TrimFunction;
 import com.holonplatform.datastore.jpa.test.expression.TrimFunctionResolver;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 
-public class CustomExpressionsTest extends AbstractJpaDatastoreSuiteTest {
+class CustomExpressionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testQueryFilter() {
+	void testQueryFilter() {
 		inTransaction(() -> {
 
 			long count = getDatastore().query().target(JPA_TARGET).filter(new KeyIsFilter(1)).count();
@@ -78,7 +78,7 @@ public class CustomExpressionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@SuppressWarnings("serial")
 	@Test
-	public void testQueryFilterExpression() {
+	void testQueryFilterExpression() {
 		final ExpressionResolver<KeyIsFilter, JPQLExpression> SQL_RESOLVER_ALIAS = new JPQLContextExpressionResolver<KeyIsFilter, JPQLExpression>() {
 
 			@Override
@@ -106,7 +106,7 @@ public class CustomExpressionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testQuerySort() {
+	void testQuerySort() {
 		List<Long> res = getDatastore().query().withExpressionResolver(StrKeySort.RESOLVER).target(JPA_TARGET)
 				.sort(new StrKeySort()).list(KEY);
 		assertEquals(2, res.size());
@@ -114,7 +114,7 @@ public class CustomExpressionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testFunctionExpression() {
+	void testFunctionExpression() {
 		if (AbstractJpaDatastoreTestSuite.customFunctionExpressionTest) {
 			inTransaction(() -> {
 

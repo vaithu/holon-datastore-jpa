@@ -29,11 +29,11 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.LTMS;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -48,9 +48,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-
 import com.holonplatform.core.beans.BeanIntrospector;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.BeanProjection;
 import com.holonplatform.core.query.ConstantExpression;
@@ -60,10 +60,10 @@ import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestProjectionBean;
 import com.holonplatform.datastore.jpa.test.model.entity.Test1;
 
-public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
+class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testPropertySet() {
+	void testPropertySet() {
 
 		PropertyBox result = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 				.orElse(null);
@@ -82,7 +82,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testProperties() {
+	void testProperties() {
 		PropertyBox result = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(KEY, STR, NBOOL)
 				.orElse(null);
 		assertEquals(Long.valueOf(1), result.getValue(KEY));
@@ -100,7 +100,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testProperty() {
+	void testProperty() {
 		Long key = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(KEY).orElse(null);
 		assertNotNull(key);
 		assertEquals(Long.valueOf(1), key);
@@ -173,7 +173,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testLiteral() {
+	void testLiteral() {
 		Long value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(ConstantExpression.create(1L))
 				.orElse(null);
 		assertNotNull(value);
@@ -181,17 +181,17 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testConversion() {
+	void testConversion() {
 		List<Long> keys = getDatastore().query().target(JPA_TARGET).sort(KEY.asc()).stream(PROPERTIES)
 				.map((r) -> r.getValue(KEY)).collect(Collectors.toList());
 		assertNotNull(keys);
 		assertEquals(2, keys.size());
-		assertEquals(new Long(1), keys.get(0));
-		assertEquals(new Long(2), keys.get(1));
+		assertEquals(Long.valueOf(1), keys.get(0));
+		assertEquals(Long.valueOf(2), keys.get(1));
 	}
 
 	@Test
-	public void testCount() {
+	void testCount() {
 		long count = getDatastore().query().target(JPA_TARGET).count();
 		assertEquals(2, count);
 
@@ -200,7 +200,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testBeanConversion() {
+	void testBeanConversion() {
 		List<TestData> results = getDatastore().query().target(JPA_TARGET).sort(KEY.asc()).stream(PROPERTIES)
 				.map(r -> BeanIntrospector.get().write(r, new Test1())).collect(Collectors.toList());
 		assertNotNull(results);
@@ -211,7 +211,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testProjectionBean() {
+	void testProjectionBean() {
 		List<TestProjectionBean> results = getDatastore().query().target(JPA_TARGET).sort(KEY.asc())
 				.list(BeanProjection.of(TestProjectionBean.class));
 		assertNotNull(results);
@@ -225,7 +225,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testPropertyConversion() {
+	void testPropertyConversion() {
 		List<Boolean> values = getDatastore().query().target(JPA_TARGET).sort(KEY.asc()).list(NBOOL);
 		assertNotNull(values);
 		assertEquals(2, values.size());
@@ -234,7 +234,7 @@ public class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testSelectAll() {
+	void testSelectAll() {
 		Map<String, Object> result = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L))
 				.findOne(SelectAllProjection.create()).orElse(null);
 

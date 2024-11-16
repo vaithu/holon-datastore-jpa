@@ -420,9 +420,9 @@ public class JpaRegistrar extends AbstractConfigPropertyRegistrar implements Bea
 	private static String getDataSourceBeanName(BeanDefinitionRegistry registry, BeanFactory beanFactory,
 			String dataContextId) {
 		// check unique DataSource if no data context id specified
-		if (dataContextId == null && beanFactory instanceof ListableBeanFactory) {
+		if (dataContextId == null && beanFactory instanceof ListableBeanFactory factory) {
 			String[] dataSourceBeanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
-					(ListableBeanFactory) beanFactory, DataSource.class, false, false);
+					factory, DataSource.class, false, false);
 			if (dataSourceBeanNames != null && dataSourceBeanNames.length == 1) {
 				return dataSourceBeanNames[0];
 			}

@@ -98,10 +98,10 @@ public class JpaBulkInsert extends AbstractBulkInsert {
 					try {
 						Object batchSizeValue = properties.get(propertyName);
 						if (batchSizeValue != null) {
-							if (batchSizeValue instanceof Number) {
-								return ((Number) batchSizeValue).intValue();
-							} else if (batchSizeValue instanceof String) {
-								return Integer.valueOf((String) batchSizeValue);
+							if (batchSizeValue instanceof Number number) {
+								return number.intValue();
+							} else if (batchSizeValue instanceof String string) {
+								return Integer.valueOf(string);
 							}
 						}
 					} catch (Exception e) {

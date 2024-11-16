@@ -22,18 +22,18 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_NOID;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_V;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 
-public class RefreshTest extends AbstractJpaDatastoreSuiteTest {
+class RefreshTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testRefresh() {
+	void testRefresh() {
 		PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
 				.orElse(null);
 		assertNotNull(value);
@@ -44,7 +44,7 @@ public class RefreshTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testRefreshVirtual() {
+	void testRefreshVirtual() {
 		PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES_V)
 				.orElse(null);
 		assertNotNull(value);
@@ -57,7 +57,7 @@ public class RefreshTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testUpdateRefresh() {
+	void testUpdateRefresh() {
 
 		inTransaction(() -> {
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
@@ -80,7 +80,7 @@ public class RefreshTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testRefreshNoId() {
+	void testRefreshNoId() {
 		PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES_NOID)
 				.orElse(null);
 		assertNotNull(value);

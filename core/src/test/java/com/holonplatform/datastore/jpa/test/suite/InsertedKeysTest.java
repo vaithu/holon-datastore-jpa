@@ -19,23 +19,23 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST2;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST2_CODE;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST2_PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST2_TEXT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
 
-public class InsertedKeysTest extends AbstractJpaDatastoreSuiteTest {
+class InsertedKeysTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testGeneratedId() {
+	void testGeneratedId() {
 
 		getDatastore().requireTransactional().withTransaction(tx -> {
 

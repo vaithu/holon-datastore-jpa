@@ -19,19 +19,19 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.KEY;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES_NOID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 
-public class DeleteTest extends AbstractJpaDatastoreSuiteTest {
+class DeleteTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testDelete() {
+	void testDelete() {
 		inTransaction(() -> {
 
 			PropertyBox value = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(PROPERTIES)
@@ -47,7 +47,7 @@ public class DeleteTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testDeleteUsingKey() {
+	void testDeleteUsingKey() {
 		inTransaction(() -> {
 
 			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 1L).build();
@@ -61,7 +61,7 @@ public class DeleteTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testDeleteNoId() {
+	void testDeleteNoId() {
 		inTransaction(() -> {
 
 			PropertyBox value = PropertyBox.builder(PROPERTIES_NOID).set(KEY, 1L).build();

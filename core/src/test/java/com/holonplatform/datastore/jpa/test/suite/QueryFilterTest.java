@@ -27,8 +27,8 @@ import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTes
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.LTMS;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.PROPERTIES;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TIME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,15 +39,17 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Test;
+import jakarta.transaction.Transactional;
 
 import com.holonplatform.core.internal.query.filter.NotFilter;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 
-public class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
+class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testFilters() {
+	void testFilters() {
 
 		long count = getDatastore().query().target(JPA_TARGET).filter(STR.eq("One")).count();
 		assertEquals(1, count);
@@ -112,7 +114,7 @@ public class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testEscape() {
+	void testEscape() {
 		inTransaction(() -> {
 
 			PropertyBox value = PropertyBox.builder(PROPERTIES).set(KEY, 1001L).set(STR, "50%").set(NBOOL, false)
@@ -138,8 +140,9 @@ public class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
 		});
 	}
 
+	@Transactional
 	@Test
-	public void testDateAndTimes() {
+	void testDateAndTimes() {
 
 		List<Date> values = getDatastore().query().target(JPA_TARGET).list(DAT);
 		assertNotNull(values);
@@ -199,7 +202,7 @@ public class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testTimeFilter() {
+	void testTimeFilter() {
 
 		LocalTime time = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(TIME).orElse(null);
 		assertNotNull(time);
@@ -213,7 +216,7 @@ public class QueryFilterTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testLocalDateTimeWithTimestampFilter() {
+	void testLocalDateTimeWithTimestampFilter() {
 
 		List<LocalDateTime> ltvalues = getDatastore().query().target(JPA_TARGET)
 				.filter(LTMS.eq(LocalDateTime.of(2017, Month.MARCH, 23, 15, 30, 25))).list(LTMS);

@@ -232,7 +232,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		}
 
 		// platform
-		if (!getORMPlatform().isPresent()) {
+		if (getORMPlatform().isEmpty()) {
 			// try to detect
 			detectORMPlatform().ifPresent(platform -> setORMPlatform(platform));
 		}
@@ -884,7 +884,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		public JpaDatastore.Builder<D> dialect(String dialectClassName) {
 			ObjectUtils.argumentNotNull(dialectClassName, "Dialect class name must be not null");
 			try {
-				datastore.setDialect((ORMDialect) Class.forName(dialectClassName).newInstance());
+				datastore.setDialect((ORMDialect) Class.forName(dialectClassName).getDeclaredConstructor().newInstance());
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Failed to istantiate dialect class [" + dialectClassName + "]", e);
 			}

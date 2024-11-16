@@ -24,7 +24,6 @@ import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,8 +35,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,13 +49,12 @@ import com.holonplatform.jpa.spring.EnableJpaDatastore;
 import com.holonplatform.jpa.spring.test.domain1.TestJpaDomain1;
 import com.holonplatform.jpa.spring.test.domain2.TestJpaDomain2;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestEnableDatastoreMulti.Config.class)
-public class TestEnableDatastoreMulti {
+@SpringJUnitConfig(classes = TestEnableDatastoreMulti.Config.class)
+class TestEnableDatastoreMulti {
 
 	@Configuration
 	@EnableTransactionManagement
-	@Import({ Config1.class, Config2.class })
+	@Import({Config1.class, Config2.class})
 	protected static class Config {
 
 	}
@@ -69,7 +66,7 @@ public class TestEnableDatastoreMulti {
 	protected static class Config1 {
 
 		@Bean
-		@Primary
+				@Primary
 		public FactoryBean<EntityManagerFactory> entityManagerFactory1(@Qualifier("one") DataSource dataSource) {
 			LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 			emf.setDataSource(dataSource);
@@ -78,12 +75,13 @@ public class TestEnableDatastoreMulti {
 			emf.setJpaVendorAdapter(va);
 			emf.setPackagesToScan(TestJpaDomain1.class.getPackage().getName());
 			emf.setPersistenceUnitName("one");
+			emf.setEntityManagerFactoryInterface(EntityManagerFactory.class);
 			return emf;
 		}
 
 		@Bean
-		@Primary
-		@Qualifier("one")
+				@Primary
+				@Qualifier("one")
 		public PlatformTransactionManager transactionManager1(EntityManagerFactory emf) {
 			return new JpaTransactionManager(emf);
 		}
@@ -97,7 +95,7 @@ public class TestEnableDatastoreMulti {
 	protected static class Config2 {
 
 		@Bean
-		@Qualifier("two")
+				@Qualifier("two")
 		public FactoryBean<EntityManagerFactory> entityManagerFactory2(@Qualifier("two") DataSource dataSource) {
 			LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 			emf.setDataSource(dataSource);
@@ -106,11 +104,12 @@ public class TestEnableDatastoreMulti {
 			emf.setJpaVendorAdapter(va);
 			emf.setPackagesToScan(TestJpaDomain2.class.getPackage().getName());
 			emf.setPersistenceUnitName("two");
+			emf.setEntityManagerFactoryInterface(EntityManagerFactory.class);
 			return emf;
 		}
 
 		@Bean
-		@Qualifier("two")
+				@Qualifier("two")
 		public PlatformTransactionManager transactionManager2(@Qualifier("two") EntityManagerFactory emf) {
 			return new JpaTransactionManager(emf);
 		}
@@ -125,12 +124,12 @@ public class TestEnableDatastoreMulti {
 	private JpaDatastore datastore;
 
 	@Autowired
-	@Qualifier("two")
+			@Qualifier("two")
 	private JpaDatastore datastore2;
 
 	@Transactional
 	@Test
-	public void testDatastore1() {
+	void testDatastore1() {
 
 		assertNotNull(datastore);
 
@@ -145,7 +144,7 @@ public class TestEnableDatastoreMulti {
 
 	@Transactional("two")
 	@Test
-	public void testDatastore2() {
+	void testDatastore2() {
 
 		assertNotNull(datastore2);
 

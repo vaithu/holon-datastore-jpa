@@ -38,7 +38,7 @@ import com.holonplatform.jpa.spring.boot.test.domain1.TestJpaDomain1;
 
 @SpringBootTest
 @ActiveProfiles("standard")
-public class TestDatastoreAutoConfig {
+class TestDatastoreAutoConfig {
 
 	@Configuration
 	@EnableAutoConfiguration
@@ -58,7 +58,7 @@ public class TestDatastoreAutoConfig {
 
 	@Transactional
 	@Test
-	public void testJpa() {
+	void testJpa() {
 
 		assertNotNull(datastore);
 

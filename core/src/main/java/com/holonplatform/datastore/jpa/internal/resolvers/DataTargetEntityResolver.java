@@ -86,8 +86,8 @@ public enum DataTargetEntityResolver implements JPQLContextExpressionResolver<Da
 		final Class<?> entityClass;
 
 		// get entity class
-		if (target instanceof JpaTarget) {
-			entityClass = ((JpaTarget<?>) target).getEntityClass();
+		if (target instanceof JpaTarget jpaTarget) {
+			entityClass = jpaTarget.getEntityClass();
 		} else {
 			entityClass = EntityTargetCache.resolveEntityClass(emf, target.getName())
 					.orElseThrow(() -> new InvalidExpressionException("Invalid data target name [" + target.getName()

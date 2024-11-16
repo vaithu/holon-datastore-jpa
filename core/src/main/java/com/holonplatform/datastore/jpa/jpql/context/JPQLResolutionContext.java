@@ -134,7 +134,7 @@ public interface JPQLResolutionContext extends JpaContext, ResolutionContext, Ex
 	 */
 	default Optional<JPQLStatementResolutionContext> isStatementCompositionContext() {
 		return Optional.ofNullable(
-				(this instanceof JPQLStatementResolutionContext) ? (JPQLStatementResolutionContext) this : null);
+				(this instanceof JPQLStatementResolutionContext jpqlsrc) ? jpqlsrc : null);
 	}
 
 	/**
@@ -153,8 +153,8 @@ public interface JPQLResolutionContext extends JpaContext, ResolutionContext, Ex
 	 *         type. Otherwise, an empty Optional is returned.
 	 */
 	static Optional<JPQLResolutionContext> isJPQLResolutionContext(ResolutionContext context) {
-		if (context instanceof JPQLResolutionContext) {
-			return Optional.of((JPQLResolutionContext) context);
+		if (context instanceof JPQLResolutionContext resolutionContext) {
+			return Optional.of(resolutionContext);
 		}
 		return Optional.empty();
 	}

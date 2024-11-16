@@ -98,13 +98,13 @@ public class JpaAutoConfigurationRegistrar
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
-		if (beanFactory instanceof ListableBeanFactory) {
+		if (beanFactory instanceof ListableBeanFactory factory) {
 			for (String[] dataSourceDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry,
-					(ListableBeanFactory) beanFactory, DataSource.class, DataSourceFactoryBean.class)) {
+					factory, DataSource.class, DataSourceFactoryBean.class)) {
 				final String dataSourceBeanName = dataSourceDefinition[0];
 				final String dataContextId = dataSourceDefinition[1];
 				// check EntityManagerFactory bean
-				String emfBeanName = isBeanRegistered((ListableBeanFactory) beanFactory, registry,
+				String emfBeanName = isBeanRegistered(factory, registry,
 						EntityManagerFactory.class, dataContextId, BeanRegistryUtils.buildBeanName(dataContextId,
 								EnableJpa.DEFAULT_ENTITYMANAGERFACTORY_BEAN_NAME));
 
@@ -121,7 +121,7 @@ public class JpaAutoConfigurationRegistrar
 				}
 
 				// check JpaDatastore bean
-				if (emfBeanName != null && isBeanRegistered((ListableBeanFactory) beanFactory, registry,
+				if (emfBeanName != null && isBeanRegistered(factory, registry,
 						JpaDatastore.class, dataContextId, BeanRegistryUtils.buildBeanName(dataContextId,
 								EnableJpaDatastore.DEFAULT_DATASTORE_BEAN_NAME)) == null) {
 					// register JPA Datastore
@@ -148,8 +148,8 @@ public class JpaAutoConfigurationRegistrar
 		if (beanNames != null && beanNames.length > 0) {
 			for (String beanName : beanNames) {
 				BeanDefinition bd = registry.getBeanDefinition(beanName);
-				if (bd instanceof DataContextBoundBeanDefinition) {
-					String did = ((DataContextBoundBeanDefinition) bd).getDataContextId().orElse(null);
+				if (bd instanceof DataContextBoundBeanDefinition definition) {
+					String did = definition.getDataContextId().orElse(null);
 					if ((dataContextId == null && did == null)
 							|| (dataContextId != null && dataContextId.equals(did))) {
 						return beanName;

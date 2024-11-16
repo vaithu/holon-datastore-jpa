@@ -66,8 +66,8 @@ public enum DataTargetResolver implements JPQLContextExpressionResolver<DataTarg
 		// validate
 		expression.validate();
 
-		if (expression instanceof RelationalTarget) {
-			return Optional.of((RelationalTarget) expression);
+		if (expression instanceof RelationalTarget target) {
+			return Optional.of(target);
 		}
 
 		// intermediate resolution

@@ -1,175 +1,200 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.holon-platform</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.1.6</version>
-	</parent>
+    <parent>
+        <groupId>com.holon-platform</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.1.6</version>
+    </parent>
 
-	<groupId>com.holon-platform.jpa</groupId>
-	<artifactId>holon-datastore-jpa-root</artifactId>
-	<version>5.5.1-SNAPSHOT</version>
+    <groupId>com.holon-platform.jpa</groupId>
+    <artifactId>holon-datastore-jpa-root</artifactId>
+    <version>5.5.1-SNAPSHOT</version>
 
-	<packaging>pom</packaging>
+    <packaging>pom</packaging>
 
-	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Holon JPA Datastore root pom</description>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Holon JPA Datastore root pom</description>
 
-	<url>https://holon-platform.com</url>
+    <url>https://holon-platform.com</url>
 
-	<organization>
-		<name>The Holon Platform</name>
-		<url>https://holon-platform.com</url>
-	</organization>
+    <organization>
+        <name>The Holon Platform</name>
+        <url>https://holon-platform.com</url>
+    </organization>
 
-	<licenses>
-		<license>
-			<name>Apache License Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-	<developers>
-		<developer>
-			<name>Holon development team</name>
-			<email>dev@holon-platform.com</email>
-			<organization>The Holon Platform</organization>
-			<organizationUrl>https://holon-platform.com</organizationUrl>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <name>Holon development team</name>
+            <email>dev@holon-platform.com</email>
+            <organization>The Holon Platform</organization>
+            <organizationUrl>https://holon-platform.com</organizationUrl>
+        </developer>
+    </developers>
 
-	<issueManagement>
-		<url>https://github.com/holon-platform/holon-datastore-jpa/issues</url>
-		<system>GitHub Issues</system>
-	</issueManagement>
+    <issueManagement>
+        <url>https://github.com/holon-platform/holon-datastore-jpa/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
 
-	<scm>
-		<connection>scm:git:https://github.com/holon-platform/holon-datastore-jpa.git</connection>
-		<url>https://github.com/holon-platform/holon-datastore-jpa</url>
-		<developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-jpa.git</developerConnection>
-		<tag>HEAD</tag>
-	</scm>
+    <scm>
+        <connection>scm:git:https://github.com/holon-platform/holon-datastore-jpa.git</connection>
+        <url>https://github.com/holon-platform/holon-datastore-jpa</url>
+        <developerConnection>scm:git:https://github.com/holon-platform/holon-datastore-jpa.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<!-- Holon core -->
-		<holon.core.version>5.5.1-SNAPSHOT</holon.core.version>
+        <!-- Holon core -->
+        <holon.core.version>5.5.1-SNAPSHOT</holon.core.version>
 
-		<!-- Holon JDBC -->
-		<holon.jdbc.version>5.5.1-SNAPSHOT</holon.jdbc.version>
+        <!-- Holon JDBC -->
+        <holon.jdbc.version>5.5.3-SNAPSHOT</holon.jdbc.version>
 
-		<!-- Holon JPA -->
-		<holon.jpa.version>5.5.1-SNAPSHOT</holon.jpa.version>
+        <!-- Holon JPA -->
+        <holon.jpa.version>5.5.1-SNAPSHOT</holon.jpa.version>
 
-		<!-- JPA API -->
-		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+        <spring-boot.version>3.3.5</spring-boot.version>
 
-		<!-- ORMs -->
-		<hibernate.version>6.3.1.Final</hibernate.version>
-		<eclipselink.version>4.0.2</eclipselink.version>
-		<openjpa.version>3.2.2</openjpa.version>
+        <!-- JPA API -->
+        <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
 
-		<datanucleus.core.version>5.1.9</datanucleus.core.version>
-		<datanucleus.rdbms.version>5.1.11</datanucleus.rdbms.version>
-		<datanucleus.jpa.version>5.1.7</datanucleus.jpa.version>
-		<datanucleus.plugin.version>5.0.2</datanucleus.plugin.version>
+        <!-- ORMs -->
+        <hibernate.version>6.5.2.Final</hibernate.version>
+        <eclipselink.version>4.0.2</eclipselink.version>
+        <openjpa.version>4.0.1</openjpa.version>
 
-		<!-- Hibernate validator -->
-		<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+        <datanucleus.core.version>5.1.9</datanucleus.core.version>
+        <datanucleus.rdbms.version>5.1.11</datanucleus.rdbms.version>
+        <datanucleus.jpa.version>5.1.7</datanucleus.jpa.version>
+        <datanucleus.plugin.version>5.0.2</datanucleus.plugin.version>
 
-		<!-- HikariCP -->
-		<hikaricp.version>3.4.5</hikaricp.version>
+        <!-- Hibernate validator -->
+        <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
 
-		<!-- ByteBuddy -->
-		<bytebuddy.version>1.14.9</bytebuddy.version>
+        <junit.jupiter.verion>5.11.2</junit.jupiter.verion>
 
-		<!-- Test: H2 -->
-		<h2.version>2.1.214</h2.version>
+        <!-- HikariCP -->
+        <hikaricp.version>5.1.0</hikaricp.version>
 
-	</properties>
+        <!-- ByteBuddy -->
+        <bytebuddy.version>1.14.9</bytebuddy.version>
 
-	<modules>
-		<module>core</module>
-		<module>spring</module>
-		<module>spring-boot</module>
-		<module>starter-hibernate</module>
-		<module>starter-eclipselink</module>
-		<module>bom</module>
-		<module>documentation</module>
-	</modules>
+        <logback.classic.verion>1.5.11</logback.classic.verion>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.junit.vintage</groupId>
-				<artifactId>junit-vintage-engine</artifactId>
-				<version>${junit.jupiter.engine.version}</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+        <!-- Test: H2 -->
+        <h2.version>2.2.224</h2.version>
+        <!--		<h2.version>1.4.200</h2.version>-->
 
-	<dependencies>
-		<!-- JUnit 5 tests -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    </properties>
 
-	<build>
-		<plugins>
-			<!-- Aggregate javadocs -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>aggregate-javadocs</id>
-						<phase>package</phase>
-						<inherited>false</inherited>
-						<goals>
-							<goal>aggregate-no-fork</goal>
-						</goals>
-						<configuration>
-							<show>public</show>
-							<excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
-							<quiet>true</quiet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Assembly apidocs -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>apidocs-assembly</id>
-						<phase>package</phase>
-						<inherited>false</inherited>
-						<configuration>
-							<appendAssemblyId>true</appendAssemblyId>
-							<descriptorRefs>
-								<descriptorRef>apidocs</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <modules>
+        <module>core</module>
+        <module>spring</module>
+        <module>spring-boot</module>
+        <module>starter-hibernate</module>
+        <module>starter-eclipselink</module>
+        <module>bom</module>
+        <module>documentation</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <version>${junit.jupiter.engine.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- JUnit 5 tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openrewrite.maven</groupId>
+                <artifactId>rewrite-maven-plugin</artifactId>
+                <version>5.10.0</version>
+                <configuration>
+                    <activeRecipes>
+                        <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1</recipe>
+                    </activeRecipes>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.openrewrite.recipe</groupId>
+                        <artifactId>rewrite-spring</artifactId>
+                        <version>5.0.12</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- Aggregate javadocs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>aggregate-javadocs</id>
+                        <phase>package</phase>
+                        <inherited>false</inherited>
+                        <goals>
+                            <goal>aggregate-no-fork</goal>
+                        </goals>
+                        <configuration>
+                            <show>public</show>
+                            <excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Assembly apidocs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>apidocs-assembly</id>
+                        <phase>package</phase>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <descriptorRefs>
+                                <descriptorRef>apidocs</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

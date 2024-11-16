@@ -18,22 +18,22 @@ package com.holonplatform.datastore.jpa.test.suite;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST3_CODE;
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST3_TEXT;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-
 import com.holonplatform.core.property.PropertyBox;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.datastore.jpa.JpaTarget;
 import com.holonplatform.datastore.jpa.test.model.entity.Test3;
 
-public class DistinctTest extends AbstractJpaDatastoreSuiteTest {
+class DistinctTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testDistinctSingle() {
+	void testDistinctSingle() {
 		inTransaction(() -> {
 
 			getDatastore().insert(TEST3,
@@ -55,7 +55,7 @@ public class DistinctTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testDistinctMultiple() {
+	void testDistinctMultiple() {
 		inTransaction(() -> {
 
 			getDatastore().insert(TEST3,
@@ -81,7 +81,7 @@ public class DistinctTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testDistinctEntity() {
+	void testDistinctEntity() {
 		if (AbstractJpaDatastoreTestSuite.entityProjectionTest) {
 			inTransaction(() -> {
 

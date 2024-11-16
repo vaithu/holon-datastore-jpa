@@ -69,7 +69,7 @@ public class DefaultJPQLContextParametersHandler implements JPQLContextParameter
 	 * @return Parameter name
 	 */
 	protected String generateParameterName(int index) {
-		return "p" + String.format("%04d", index);
+		return "p" + "%04d".formatted(index);
 	}
 
 }

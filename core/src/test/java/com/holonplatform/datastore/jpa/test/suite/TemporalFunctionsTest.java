@@ -21,9 +21,9 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TMS;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.LDAT;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.LTMS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,15 +31,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Test;
-
 import com.holonplatform.core.datastore.Datastore.OperationResult;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.query.QueryFunction;
 
-public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
+class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testCurrentDate() {
+	void testCurrentDate() {
 
 		final Calendar now = Calendar.getInstance();
 
@@ -82,7 +82,7 @@ public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testCurrentDateAsLocalDate() {
+	void testCurrentDateAsLocalDate() {
 
 		final LocalDate lnow = LocalDate.now();
 
@@ -118,7 +118,7 @@ public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testCurrentTimestamp() {
+	void testCurrentTimestamp() {
 
 		final Calendar now = Calendar.getInstance();
 
@@ -163,7 +163,7 @@ public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testCurrentTimestampAsLocalDateTime() {
+	void testCurrentTimestampAsLocalDateTime() {
 
 		final LocalDateTime lnow = LocalDateTime.now().withSecond(0).withNano(0);
 
@@ -200,7 +200,7 @@ public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testTemporalFunctionProjection() {
+	void testTemporalFunctionProjection() {
 
 		if (AbstractJpaDatastoreTestSuite.temporalPartFunctionTest) {
 
@@ -241,7 +241,7 @@ public class TemporalFunctionsTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testTemporalFunctionFilter() {
+	void testTemporalFunctionFilter() {
 
 		if (AbstractJpaDatastoreTestSuite.temporalPartFunctionTest) {
 

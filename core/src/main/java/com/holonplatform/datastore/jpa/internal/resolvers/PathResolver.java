@@ -75,7 +75,7 @@ public enum PathResolver implements JPQLContextExpressionResolver<Path, JPQLExpr
 		// check parent alias
 		Optional<String> alias = path.getParent()
 				.flatMap(parent -> context.isStatementCompositionContext().flatMap(ctx -> ctx.getAliasOrRoot(parent)));
-		if (!alias.isPresent()) {
+		if (alias.isEmpty()) {
 			alias = context.isStatementCompositionContext().flatMap(ctx -> ctx.getAliasOrRoot(path));
 		}
 

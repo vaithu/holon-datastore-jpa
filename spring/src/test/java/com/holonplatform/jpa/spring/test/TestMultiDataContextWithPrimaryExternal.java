@@ -24,14 +24,12 @@ import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,10 +42,9 @@ import com.holonplatform.jpa.spring.EnableJpa;
 import com.holonplatform.jpa.spring.test.domain1.TestJpaDomain1;
 import com.holonplatform.jpa.spring.test.domain2.TestJpaDomain2;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestMultiDataContextWithPrimaryExternal.Config.class)
+@SpringJUnitConfig(classes = TestMultiDataContextWithPrimaryExternal.Config.class)
 @DirtiesContext
-public class TestMultiDataContextWithPrimaryExternal {
+class TestMultiDataContextWithPrimaryExternal {
 
 	@Configuration
 	@PropertySource("test3.properties")
@@ -79,21 +76,21 @@ public class TestMultiDataContextWithPrimaryExternal {
 	private JpaDatastore datastore1;
 
 	@Autowired
-	@Qualifier("two")
+			@Qualifier("two")
 	private DataSource dataSource2;
 	@Autowired
-	@Qualifier("two")
+			@Qualifier("two")
 	private EntityManagerFactory entityManagerFactory2;
 	@Autowired
-	@Qualifier("two")
+			@Qualifier("two")
 	private PlatformTransactionManager transactionManager2;
 	@Autowired
-	@Qualifier("two")
+			@Qualifier("two")
 	private JpaDatastore datastore2;
 
 	@Transactional
 	@Test
-	public void testDataContext1() {
+	void testDataContext1() {
 		assertNotNull(dataSource1);
 		assertNotNull(entityManagerFactory1);
 		assertNotNull(transactionManager1);
@@ -109,7 +106,7 @@ public class TestMultiDataContextWithPrimaryExternal {
 
 	@Transactional("two")
 	@Test
-	public void testDataContext2() {
+	void testDataContext2() {
 		assertNotNull(dataSource2);
 		assertNotNull(entityManagerFactory2);
 		assertNotNull(transactionManager2);

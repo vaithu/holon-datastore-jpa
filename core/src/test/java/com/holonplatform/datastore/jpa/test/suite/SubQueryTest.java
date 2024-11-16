@@ -20,18 +20,18 @@ import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST3_COD
 import static com.holonplatform.datastore.jpa.test.model.TestDataModel.TEST3_TEXT;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.JPA_TARGET;
 import static com.holonplatform.datastore.jpa.test.suite.AbstractJpaDatastoreTestSuite.TEST3;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.holonplatform.core.datastore.relational.RelationalTarget;
+
+import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.relational.SubQuery;
 import com.holonplatform.core.property.PathProperty;
 
-public class SubQueryTest extends AbstractJpaDatastoreSuiteTest {
+class SubQueryTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
-	public void testSubQuery() {
+	void testSubQuery() {
 
 		long count = getDatastore().query().target(JPA_TARGET)
 				.filter(KEY.in(
@@ -57,7 +57,7 @@ public class SubQueryTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
-	public void testSubQueryExplicitAlias() {
+	void testSubQueryExplicitAlias() {
 
 		final RelationalTarget<?> AT = RelationalTarget.of(JPA_TARGET).alias("parent");
 		final PathProperty<Long> A_KEY = AT.property(KEY);
