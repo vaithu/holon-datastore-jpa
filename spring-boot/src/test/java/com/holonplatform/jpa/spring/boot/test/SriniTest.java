@@ -4,10 +4,12 @@ import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreOperations;
 import com.holonplatform.core.datastore.DefaultWriteOption;
+import com.holonplatform.core.datastore.beans.BeanDatastore;
 import com.holonplatform.core.property.NumericProperty;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
+import com.holonplatform.core.query.QueryProjection;
 import com.holonplatform.datastore.jpa.JpaTarget;
 import com.holonplatform.jpa.spring.boot.test.domain1.TestJpaDomain1;
 import org.junit.jupiter.api.Test;
@@ -69,6 +71,28 @@ public class SriniTest {
         propertyBox.setValue(KEY,8L);
         datastore.update(TARGET, propertyBox);
         System.out.println(propertyBox);
+    }
+
+    @Test
+    public void testBeanDatastore() {
+
+        BeanDatastore beanDatastore = BeanDatastore.of(datastore);
+
+        beanDatastore.query(TestJpaDomain1.class).stream().findFirst()
+                .ifPresentOrElse(testJpaDomain1 -> System.out.println(testJpaDomain1), () -> new RuntimeException("No records found"));
+
+        TestJpaDomain1 entity = new TestJpaDomain1();
+        entity.setKey(1L);
+        entity.setStringValue("Sample String");
+        entity.setDecimalValue(123.45);
+
+        entity = beanDatastore.insert(entity).getResult().orElseThrow();
+
+        entity.setStringValue("Test");
+        entity = beanDatastore.update(entity, DefaultWriteOption.BRING_BACK_GENERATED_IDS).getResult().orElseThrow();
+        System.out.println(entity);
+
+
     }
 
 }
