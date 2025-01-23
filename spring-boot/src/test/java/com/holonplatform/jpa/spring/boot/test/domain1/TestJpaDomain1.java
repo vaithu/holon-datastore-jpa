@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
-@Entity
+@Entity(name = "test12")
 @Table(name = "test1")
 public class TestJpaDomain1 implements Serializable {
 
@@ -73,4 +73,13 @@ public class TestJpaDomain1 implements Serializable {
 		this.decimalValue = decimalValue;
 	}
 
+	@Override
+	public String toString() {
+		return "TestJpaDomain1{" +
+				"decimalValue=" + decimalValue +
+				", key=" + key +
+				", version=" + version +
+				", stringValue='" + stringValue + '\'' +
+				'}';
+	}
 }
