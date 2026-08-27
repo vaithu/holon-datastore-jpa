@@ -1,0 +1,135 @@
+{
+  "groups": [
+    {
+      "name": "holon.jpa",
+      "type": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Holon JPA stack configuration (EntityManagerFactory, ORM dialect, DDL). All properties support an optional data-context-id segment for multi-datasource setups, e.g. holon.jpa.primary.show-sql=true."
+    },
+    {
+      "name": "holon.datastore.jpa",
+      "type": "com.holonplatform.jpa.spring.JpaDatastoreConfigProperties",
+      "description": "Holon JPA Datastore bean configuration. All properties support an optional data-context-id segment for multi-datasource setups, e.g. holon.datastore.jpa.primary.transactional=true."
+    },
+    {
+      "name": "holon.datastore",
+      "type": "com.holonplatform.core.datastore.DatastoreConfigProperties",
+      "description": "Holon Datastore common configuration. All properties support an optional data-context-id segment for multi-datasource setups, e.g. holon.datastore.primary.trace=true."
+    }
+  ],
+  "properties": [
+    {
+      "name": "holon.jpa.show-sql",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Whether to instruct the JPA ORM engine to log executed SQL statements. Supported by Hibernate and EclipseLink. When holon.datastore.trace is also set, trace takes precedence.",
+      "defaultValue": false
+    },
+    {
+      "name": "holon.jpa.generate-ddl",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Whether to initialize the database schema from JPA entity mappings on startup (DDL generation). Equivalent to hbm2ddl.auto=create for Hibernate.",
+      "defaultValue": false
+    },
+    {
+      "name": "holon.jpa.dialect",
+      "type": "java.lang.String",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Fully-qualified class name of the JPA ORM dialect to use (e.g. org.hibernate.dialect.PostgreSQLDialect). Passed directly to the ORM vendor configuration."
+    },
+    {
+      "name": "holon.jpa.database",
+      "type": "com.holonplatform.jdbc.DatabasePlatform",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Target database platform. Used to select the appropriate SQL dialect and behaviour when holon.jpa.dialect is not explicitly set."
+    },
+    {
+      "name": "holon.jpa.orm",
+      "type": "com.holonplatform.datastore.jpa.ORMPlatform",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "JPA ORM provider to use. Selects provider-specific defaults such as dialect discovery, naming strategies and weaving options. If not set, Holon auto-detects the provider from the classpath."
+    },
+    {
+      "name": "holon.jpa.properties",
+      "type": "java.util.Map<java.lang.String,java.lang.String>",
+      "sourceType": "com.holonplatform.jpa.spring.JpaConfigProperties",
+      "description": "Additional vendor-specific JPA properties passed directly to the EntityManagerFactory. For example: holon.jpa.properties.hibernate.hbm2ddl.auto=validate or holon.jpa.properties.eclipselink.weaving=false."
+    },
+    {
+      "name": "holon.datastore.jpa.primary",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.jpa.spring.JpaDatastoreConfigProperties",
+      "description": "Whether to register the JPA Datastore bean as the primary Spring bean candidate. When true, this Datastore is preferred for injection over other Datastore beans. Defaults to following the EntityManagerFactory primary flag.",
+      "defaultValue": false
+    },
+    {
+      "name": "holon.datastore.jpa.auto-flush",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.jpa.spring.JpaDatastoreConfigProperties",
+      "description": "Whether to enable EntityManager auto-flush mode. When true, EntityManager.flush() is called automatically after every write operation (insert, update, save, delete, refresh), ensuring changes are immediately flushed to the database within the current transaction.",
+      "defaultValue": false
+    },
+    {
+      "name": "holon.datastore.jpa.transactional",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.jpa.spring.JpaDatastoreConfigProperties",
+      "description": "Whether to wrap Datastore write operations (insert, update, save, delete, refresh) in a Spring transaction. When true, each write method participates in an existing transaction or starts a new one. Disable only when managing transactions entirely at the application level.",
+      "defaultValue": true
+    },
+    {
+      "name": "holon.datastore.trace",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.holonplatform.core.datastore.DatastoreConfigProperties",
+      "description": "Whether to enable Datastore trace mode, which logs the generated JPQL statements at DEBUG level. Takes precedence over holon.jpa.show-sql.",
+      "defaultValue": false
+    },
+    {
+      "name": "holon.datastore.dialect",
+      "type": "java.lang.String",
+      "sourceType": "com.holonplatform.core.datastore.DatastoreConfigProperties",
+      "description": "Fully-qualified class name of a custom com.holonplatform.datastore.jpa.dialect.ORMDialect implementation to use for the Datastore. Overrides the automatically-detected ORM dialect."
+    }
+  ],
+  "hints": [
+    {
+      "name": "holon.jpa.orm",
+      "values": [
+        {
+          "value": "HIBERNATE",
+          "description": "Hibernate ORM (recommended, auto-detected when hibernate-core is on the classpath)."
+        },
+        {
+          "value": "ECLIPSELINK",
+          "description": "EclipseLink JPA (Eclipse Persistence Services)."
+        },
+        {
+          "value": "OPENJPA",
+          "description": "Apache OpenJPA."
+        },
+        {
+          "value": "DATANUCLEUS",
+          "description": "DataNucleus JPA."
+        }
+      ]
+    },
+    {
+      "name": "holon.jpa.database",
+      "values": [
+        {"value": "NONE",       "description": "No specific database platform (use ORM auto-detection)."},
+        {"value": "H2",         "description": "H2 in-memory / embedded database."},
+        {"value": "MYSQL",      "description": "MySQL / MySQL-compatible database."},
+        {"value": "MARIADB",    "description": "MariaDB."},
+        {"value": "POSTGRESQL", "description": "PostgreSQL."},
+        {"value": "ORACLE",     "description": "Oracle Database."},
+        {"value": "SQL_SERVER", "description": "Microsoft SQL Server."},
+        {"value": "DB2",        "description": "IBM DB2."},
+        {"value": "DB2_AS400",  "description": "IBM DB2 for AS/400."},
+        {"value": "DERBY",      "description": "Apache Derby."},
+        {"value": "HSQL",       "description": "HyperSQL (HSQLDB)."},
+        {"value": "INFORMIX",   "description": "IBM Informix."},
+        {"value": "SQLITE",     "description": "SQLite."},
+        {"value": "HANA",       "description": "SAP HANA."}
+      ]
+    }
+  ]
+}
