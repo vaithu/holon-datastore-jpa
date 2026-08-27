@@ -17,83 +17,100 @@ package com.holonplatform.jpa.spring.boot.internal;
 
 import jakarta.persistence.EntityManagerFactory;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanRegistrar;
+import org.springframework.beans.factory.BeanRegistry;
 import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.holonplatform.core.datastore.Datastore;
+import com.holonplatform.core.datastore.DatastoreConfigProperties;
+import com.holonplatform.datastore.jpa.JpaDatastore;
+import com.holonplatform.datastore.jpa.dialect.ORMDialect;
+import com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore;
+import com.holonplatform.jpa.spring.EnableJpaDatastore;
 import com.holonplatform.jpa.spring.JpaDatastoreConfigProperties;
-import com.holonplatform.jpa.spring.internal.JpaDatastoreRegistrar;
-import com.holonplatform.spring.internal.BeanRegistryUtils;
+import com.holonplatform.jpa.spring.SpringEntityManagerLifecycleHandler;
+import com.holonplatform.jpa.spring.internal.TransactionalJpaDatastore;
+import com.holonplatform.spring.EnvironmentConfigPropertyProvider;
 
 /**
- * Registrar for JPA {@link Datastore} beans registration.
- * 
- * @since 5.0.0
+ * AOT-compatible {@link BeanRegistrar} for the {@link JpaDatastore} bean in the single-{@link EntityManagerFactory}
+ * auto-configuration path.
+ *
+ * <p>Replaces the previous {@code ImportBeanDefinitionRegistrar} implementation to enable full Spring AOT processing
+ * and GraalVM native-image compilation. The registered bean type ({@link TransactionalJpaDatastore} or
+ * {@link DefaultJpaDatastore}) is statically visible to the AOT processor, and the {@link EntityManagerFactory}
+ * dependency is resolved through the supplier context.</p>
+ *
+ * @since 10.0.0
  */
-public class JpaDatastoreAutoConfigurationRegistrar
-		implements ImportBeanDefinitionRegistrar, BeanFactoryAware, BeanClassLoaderAware, EnvironmentAware {
+public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 
-	private BeanFactory beanFactory;
-
-	private ClassLoader beanClassLoader;
-
-	private Environment environment;
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader(java.lang.ClassLoader)
-	 */
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
+	public void register(BeanRegistry registry, Environment env) {
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
-	 */
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
+		JpaDatastoreConfigProperties config = JpaDatastoreConfigProperties.builder(null)
+				.withPropertySource(EnvironmentConfigPropertyProvider.create(env)).build();
+		DatastoreConfigProperties datastoreConfig = DatastoreConfigProperties.builder(null)
+				.withPropertySource(EnvironmentConfigPropertyProvider.create(env)).build();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.EnvironmentAware#setEnvironment(org.springframework.core.env.Environment)
-	 */
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
+		boolean transactional = config.getConfigPropertyValue(JpaDatastoreConfigProperties.TRANSACTIONAL, true);
+		boolean autoFlush = config.getConfigPropertyValue(JpaDatastoreConfigProperties.AUTO_FLUSH, false);
+		boolean primary = config.getConfigPropertyValue(JpaDatastoreConfigProperties.PRIMARY, false);
+		boolean trace = datastoreConfig.isTrace();
+		String dialectClassName = datastoreConfig.getDialect();
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.springframework.context.annotation.ImportBeanDefinitionRegistrar#registerBeanDefinitions(org.springframework.
-	 * core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
-	 */
-	@Override
-	public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry registry) {
-		if (beanFactory instanceof ListableBeanFactory factory) {
-			for (String[] emfDefinition : BeanRegistryUtils.getBeanNamesWithDataContextId(registry,
-					factory, EntityManagerFactory.class,
-					AbstractEntityManagerFactoryBean.class)) {
-				// register JPA Datastore
-				final String dataContextId = emfDefinition[1];
-				JpaDatastoreRegistrar.registerDatastore(registry, environment, dataContextId, emfDefinition[0],
-						JpaDatastoreConfigProperties.builder(dataContextId).build(), beanClassLoader);
+		// TransactionalJpaDatastore is the AOT-visible concrete type — no runtime proxy needed
+		@SuppressWarnings("unchecked")
+		Class<DefaultJpaDatastore> datastoreClass = (Class<DefaultJpaDatastore>) (transactional
+				? TransactionalJpaDatastore.class
+				: DefaultJpaDatastore.class);
+
+		String beanName = EnableJpaDatastore.DEFAULT_DATASTORE_BEAN_NAME;
+
+		registry.registerBean(beanName, datastoreClass, spec -> {
+			if (primary) {
+				spec.primary();
 			}
-		}
+			spec.description("Holon JPA Datastore (auto-configured)");
+			spec.supplier(ctx -> {
+				EntityManagerFactory emf = ctx.bean(EntityManagerFactory.class);
+				DefaultJpaDatastore ds;
+				try {
+					ds = datastoreClass.getDeclaredConstructor().newInstance();
+				} catch (Exception e) {
+					throw new BeanCreationException(beanName,
+							"Failed to instantiate " + datastoreClass.getName(), e);
+				}
+				SpringEntityManagerLifecycleHandler handler = SpringEntityManagerLifecycleHandler.create();
+				ds.setEntityManagerFactory(emf);
+				ds.setEntityManagerInitializer(handler);
+				ds.setEntityManagerFinalizer(handler);
+				ds.setAutoFlush(autoFlush);
+				if (trace) {
+					ds.setTraceEnabled(true);
+				}
+				if (transactional && ds instanceof TransactionalJpaDatastore txDs) {
+					// single-context auto-config path: inject the only TM
+					ctx.beanProvider(PlatformTransactionManager.class)
+							.ifUnique(txDs::setTransactionManager);
+				}
+				if (dialectClassName != null) {
+					try {
+						ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName)
+								.getDeclaredConstructor().newInstance();
+						ds.setDialect(dialect);
+					} catch (Exception e) {
+						throw new BeanCreationException(beanName,
+								"Failed to load ORMDialect class [" + dialectClassName + "]", e);
+					}
+				}
+				ds.initialize();
+				return ds;
+			});
+		});
 	}
 
 }
+

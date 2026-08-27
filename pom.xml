@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.holon-platform</groupId>
         <artifactId>parent</artifactId>
-        <version>1.1.6</version>
+        <version>1.1.7</version>
     </parent>
 
     <groupId>com.holon-platform.jpa</groupId>
     <artifactId>holon-datastore-jpa-root</artifactId>
-    <version>5.5.1-SNAPSHOT</version>
+    <version>10.0.0</version>
 
     <packaging>pom</packaging>
 
@@ -54,24 +54,66 @@
     </scm>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <!-- Holon core -->
-        <holon.core.version>5.5.1-SNAPSHOT</holon.core.version>
+        <holon.core.version>10.0.0</holon.core.version>
 
         <!-- Holon JDBC -->
-        <holon.jdbc.version>5.5.3-SNAPSHOT</holon.jdbc.version>
+        <holon.jdbc.version>10.0.0</holon.jdbc.version>
 
         <!-- Holon JPA -->
-        <holon.jpa.version>5.5.1-SNAPSHOT</holon.jpa.version>
+        <holon.jpa.version>10.0.0</holon.jpa.version>
 
-        <spring-boot.version>3.3.5</spring-boot.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
 
-        <!-- JPA API -->
-        <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+        <!-- ========================================================= -->
+        <!-- Java / Compiler                                          -->
+        <!-- ========================================================= -->
+        <maven.compiler.release>25</maven.compiler.release>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+
+        <!-- ========================================================= -->
+        <!-- Maven Core Plugins                                       -->
+        <!-- ========================================================= -->
+        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
+        <docker-maven-plugin.version>0.43.4</docker-maven-plugin.version>
+        <maven-remote-resources-plugin.version>3.1.0</maven-remote-resources-plugin.version>
+
+        <!-- ========================================================= -->
+        <!-- Code Coverage                                            -->
+        <!-- ========================================================= -->
+        <jacoco.maven.version>0.8.12</jacoco.maven.version>
+
+        <!-- ========================================================= -->
+        <!-- Testing                                                  -->
+        <!-- ========================================================= -->
+        <junit.jupiter.api.version>6.0.3</junit.jupiter.api.version>
+        <junit.jupiter.engine.version>6.0.3</junit.jupiter.engine.version>
+
+        <!-- ========================================================= -->
+        <!-- Logging                                                  -->
+        <!-- ========================================================= -->
+        <logback.version>1.5.32</logback.version>
+
+        <!-- ========================================================= -->
+        <!-- Shared / Documentation                                   -->
+        <!-- ========================================================= -->
+        <shared-resources.version>1.0.6</shared-resources.version>
+        <asciidoctor.maven.plugin.version>2.2.4</asciidoctor.maven.plugin.version>
+        <asciidoctorj.pdf.version>2.3.9</asciidoctorj.pdf.version>
+        <generated-docs.dir>${project.build.directory}/generated-docs</generated-docs.dir>
+        <project.scm.id>git-scm-server</project.scm.id>
 
         <!-- ORMs -->
-        <hibernate.version>6.5.2.Final</hibernate.version>
         <eclipselink.version>4.0.2</eclipselink.version>
         <openjpa.version>4.0.1</openjpa.version>
 
@@ -79,23 +121,6 @@
         <datanucleus.rdbms.version>5.1.11</datanucleus.rdbms.version>
         <datanucleus.jpa.version>5.1.7</datanucleus.jpa.version>
         <datanucleus.plugin.version>5.0.2</datanucleus.plugin.version>
-
-        <!-- Hibernate validator -->
-        <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
-
-        <junit.jupiter.verion>5.11.2</junit.jupiter.verion>
-
-        <!-- HikariCP -->
-        <hikaricp.version>5.1.0</hikaricp.version>
-
-        <!-- ByteBuddy -->
-        <bytebuddy.version>1.14.9</bytebuddy.version>
-
-        <logback.classic.verion>1.5.11</logback.classic.verion>
-
-        <!-- Test: H2 -->
-        <h2.version>2.2.224</h2.version>
-        <!--		<h2.version>1.4.200</h2.version>-->
 
     </properties>
 
@@ -112,10 +137,121 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.junit.vintage</groupId>
-                <artifactId>junit-vintage-engine</artifactId>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.core</groupId>
+                <artifactId>holon-bom-platform</artifactId>
+                <version>${holon.core.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.holon-platform.core</groupId>
+                <artifactId>holon-core</artifactId>
+                <version>${holon.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.core</groupId>
+                <artifactId>holon-starter</artifactId>
+                <version>${holon.core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.holon-platform.jdbc</groupId>
+                <artifactId>holon-jdbc</artifactId>
+                <version>${holon.jdbc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jdbc</groupId>
+                <artifactId>holon-jdbc-spring</artifactId>
+                <version>${holon.jdbc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jdbc</groupId>
+                <artifactId>holon-jdbc-spring-boot</artifactId>
+                <version>${holon.jdbc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.jupiter.api.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
                 <version>${junit.jupiter.engine.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-jpa-bean-processors</artifactId>
+                <version>${holon.jpa.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-datastore-jpa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-datastore-jpa-spring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-datastore-jpa-spring-boot</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-starter-jpa-hibernate</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.holon-platform.jpa</groupId>
+                <artifactId>holon-starter-jpa-eclipselink</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.jpa</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.openjpa</groupId>
+                <artifactId>openjpa</artifactId>
+                <version>${openjpa.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.datanucleus</groupId>
+                <artifactId>datanucleus-core</artifactId>
+                <version>${datanucleus.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.datanucleus</groupId>
+                <artifactId>datanucleus-api-jpa</artifactId>
+                <version>${datanucleus.jpa.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.datanucleus</groupId>
+                <artifactId>datanucleus-rdbms</artifactId>
+                <version>${datanucleus.rdbms.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -136,65 +272,147 @@
 
     <build>
         <plugins>
+            <!-- Compiler -->
             <plugin>
-                <groupId>org.openrewrite.maven</groupId>
-                <artifactId>rewrite-maven-plugin</artifactId>
-                <version>5.10.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <activeRecipes>
-                        <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1</recipe>
-                    </activeRecipes>
+                    <encoding>UTF-8</encoding>
+                    <fork>true</fork>
+                    <executable>${java25.javac}</executable>
+                    <compilerArgs>
+                        <arg>-Xlint:unchecked</arg>
+                    </compilerArgs>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.openrewrite.recipe</groupId>
-                        <artifactId>rewrite-spring</artifactId>
-                        <version>5.0.12</version>
-                    </dependency>
-                </dependencies>
             </plugin>
-            <!-- Aggregate javadocs -->
+
+            <!-- JaCoCo -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.maven.version}</version>
+            </plugin>
+
+            <!-- Import shared resources -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <version>${maven-remote-resources-plugin.version}</version>
+                <configuration>
+                    <resourceBundles>
+                        <resourceBundle>com.holon-platform:holon-shared:${shared-resources.version}</resourceBundle>
+                    </resourceBundles>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>aggregate-javadocs</id>
-                        <phase>package</phase>
-                        <inherited>false</inherited>
                         <goals>
-                            <goal>aggregate-no-fork</goal>
-                        </goals>
-                        <configuration>
-                            <show>public</show>
-                            <excludePackageNames>*.internal.*;*.examples.*</excludePackageNames>
-                            <quiet>true</quiet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Assembly apidocs -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>apidocs-assembly</id>
-                        <phase>package</phase>
-                        <inherited>false</inherited>
-                        <configuration>
-                            <appendAssemblyId>true</appendAssemblyId>
-                            <descriptorRefs>
-                                <descriptorRef>apidocs</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
-                        <goals>
-                            <goal>single</goal>
+                            <goal>process</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                    <configuration>
+                        <charset>UTF-8</charset>
+                        <docencoding>UTF-8</docencoding>
+                        <keywords>true</keywords>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-maven</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>[3.6.3,)</version>
+                                        <message>Spring Boot 4.0 requires Maven 3.6.3 or higher.</message>
+                                    </requireMavenVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.asciidoctor</groupId>
+                    <artifactId>asciidoctor-maven-plugin</artifactId>
+                    <version>${asciidoctor.maven.plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.asciidoctor</groupId>
+                            <artifactId>asciidoctorj-pdf</artifactId>
+                            <version>${asciidoctorj.pdf.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${maven-release-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.maven.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven-gpg-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${nexus-staging-maven-plugin.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>${docker-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
 
 </project>

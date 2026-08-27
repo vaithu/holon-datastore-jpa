@@ -159,6 +159,27 @@ public class JpaInsert extends AbstractInsert {
 		} catch (Exception e) {
 			LOGGER.warn("Failed to obtain entity id(s) value", e);
 		}
+		// Always write back @Version from the managed instance into the PropertyBox.
+		// JPA initializes @Version to 0 on persist; not writing it back causes stale
+		// version and OptimisticLockException on subsequent cross-transaction updates.
+		try {
+			@SuppressWarnings("rawtypes")
+			EntityType et = entityManager.getMetamodel().entity(entity);
+			et.getSingularAttributes().stream()
+					.filter(a -> ((SingularAttribute<?, ?>) a).isVersion())
+					.findFirst()
+					.ifPresent(versionAttr -> {
+						set.getProperty(((SingularAttribute<?, ?>) versionAttr).getName()).ifPresent(p -> {
+							Object versionValue = set.read((PathProperty<Object>) p, instance);
+							PathPropertyBoxAdapter versionAdapter = PathPropertyBoxAdapter.create(propertyBox);
+							if (versionAdapter.contains(p)) {
+								versionAdapter.setValue(p, versionValue);
+							}
+						});
+					});
+		} catch (Exception e) {
+			LOGGER.warn("Failed to read back @Version attribute value after persist", e);
+		}
 	}
 
 	/**

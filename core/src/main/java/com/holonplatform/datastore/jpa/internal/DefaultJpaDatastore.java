@@ -112,14 +112,14 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 	protected final static Logger LOGGER = JpaDatastoreLogger.create();
 
 	/**
-	 * Current operation EntityManager
+	 * Current operation EntityManager — bound per-scope to support virtual threads.
 	 */
-	private static final ThreadLocal<EntityManager> CURRENT_ENTITY_MANAGER = new ThreadLocal<>();
+	private static final ScopedValue<EntityManager> CURRENT_ENTITY_MANAGER = ScopedValue.newInstance();
 
 	/**
-	 * Current local transaction
+	 * Current local transaction — bound per-scope to support virtual threads.
 	 */
-	private static final ThreadLocal<JpaTransaction> CURRENT_TRANSACTION = new ThreadLocal<>();
+	private static final ScopedValue<JpaTransaction> CURRENT_TRANSACTION = ScopedValue.newInstance();
 
 	/**
 	 * Datastore EntityManagerFactory
@@ -472,41 +472,39 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "Operation must be not null");
 
-		EntityManager entityManager = null;
-		try {
-
-			// check current
-			final EntityManager current = CURRENT_ENTITY_MANAGER.get();
-			if (current != null) {
-				return operation.execute(current);
+		// reuse EntityManager already bound in this scope
+		if (CURRENT_ENTITY_MANAGER.isBound()) {
+			try {
+				return operation.execute(CURRENT_ENTITY_MANAGER.get());
+			} catch (DataAccessException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new DataAccessException("Failed to execute operation", e);
 			}
+		}
 
-			// if a transaction is active, use current transaction EntityManager
-			EntityManager txem = getCurrentTransactionEntityManager().orElse(null);
-			if (txem != null) {
+		// if a transaction is active, use its EntityManager
+		EntityManager txem = getCurrentTransactionEntityManager().orElse(null);
+		if (txem != null) {
+			try {
 				return operation.execute(txem);
+			} catch (DataAccessException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new DataAccessException("Failed to execute operation", e);
 			}
+		}
 
-			// get an EntityManager from handler
-			CURRENT_ENTITY_MANAGER.set(entityManager = obtainEntityManager());
-			return operation.execute(entityManager);
-
+		// obtain a fresh EntityManager, bind it in scope for the duration of the operation
+		final EntityManager entityManager = obtainEntityManager();
+		try {
+			return ScopedValue.where(CURRENT_ENTITY_MANAGER, entityManager).call(() -> operation.execute(entityManager));
 		} catch (DataAccessException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
 			throw new DataAccessException("Failed to execute operation", e);
 		} finally {
-			// check active transaction: avoid EntityManager finalization if present
-			if (entityManager != null) {
-				// finalize EntityManager
-				finalizeEntityManager(entityManager);
-				// remove current
-				CURRENT_ENTITY_MANAGER.remove();
-			}
+			finalizeEntityManager(entityManager);
 		}
 	}
 
@@ -521,19 +519,42 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
-		// check active transaction or create a new one
-		final JpaTransaction tx = getCurrentTransaction().map(t -> JpaTransaction.delegate(t))
-				.orElseGet(() -> startTransaction(transactionConfiguration));
-
-		try {
-			// execute operation
-			return operation.execute(tx);
-		} catch (Exception e) {
-			// check rollback transaction
-			if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
-				tx.setRollbackOnly();
+		// nested call: delegate to the already-active transaction
+		if (CURRENT_TRANSACTION.isBound()) {
+			final JpaTransaction tx = JpaTransaction.delegate(CURRENT_TRANSACTION.get());
+			try {
+				return operation.execute(tx);
+			} catch (Exception e) {
+				if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
+					tx.setRollbackOnly();
+				}
+				throw e;
+			} finally {
+				try {
+					endTransaction(tx);
+				} catch (Exception e) {
+					throw new TransactionException("Failed to finalize transaction", e);
+				}
 			}
+		}
+
+		// start a new transaction and bind it in scope
+		final JpaTransaction tx = startTransaction(transactionConfiguration);
+		try {
+			return ScopedValue.where(CURRENT_TRANSACTION, tx).call(() -> {
+				try {
+					return operation.execute(tx);
+				} catch (Exception e) {
+					if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
+						tx.setRollbackOnly();
+					}
+					throw e;
+				}
+			});
+		} catch (TransactionException e) {
 			throw e;
+		} catch (Exception e) {
+			throw new TransactionException("Transaction operation failed", e);
 		} finally {
 			try {
 				endTransaction(tx);
@@ -564,7 +585,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 	 * @return Optional current transaction
 	 */
 	private static Optional<JpaTransaction> getCurrentTransaction() {
-		return Optional.ofNullable(CURRENT_TRANSACTION.get());
+		return CURRENT_TRANSACTION.isBound() ? Optional.of(CURRENT_TRANSACTION.get()) : Optional.empty();
 	}
 
 	/**
@@ -619,10 +640,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			throw e;
 		}
 
-		// set as current transaction
-		CURRENT_TRANSACTION.set(tx);
-
-		LOGGER.debug(() -> "JPA transaction [" + tx + "] created and setted as current transaction");
+		LOGGER.debug(() -> "JPA transaction [" + tx + "] created");
 
 		// return the transaction
 		return tx;
@@ -642,9 +660,6 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			LOGGER.debug(() -> "JPA transaction [" + tx + "] was not finalized because it is not new");
 			return false;
 		}
-
-		// remove reference
-		getCurrentTransaction().filter(current -> current == tx).ifPresent(current -> CURRENT_TRANSACTION.remove());
 
 		try {
 			if (tx.isActive()) {

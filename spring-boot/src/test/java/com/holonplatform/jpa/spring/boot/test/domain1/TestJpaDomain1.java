@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
-@Entity(name = "test12")
+@Entity(name = "testjpadomain1")
 @Table(name = "test1")
 public class TestJpaDomain1 implements Serializable {
 

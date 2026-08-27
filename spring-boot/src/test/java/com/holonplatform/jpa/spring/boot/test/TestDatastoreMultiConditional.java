@@ -25,7 +25,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,7 +52,7 @@ class TestDatastoreMultiConditional {
 
 			@Bean
 			@Qualifier("one")
-			public FactoryBean<EntityManagerFactory> entityManagerFactory1(EntityManagerFactoryBuilder builder, DataSource dataSource) {
+			public FactoryBean<EntityManagerFactory> entityManagerFactory1(DataSource dataSource) {
 				LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 				emf.setDataSource(dataSource);
 				HibernateJpaVendorAdapter va = new HibernateJpaVendorAdapter();
