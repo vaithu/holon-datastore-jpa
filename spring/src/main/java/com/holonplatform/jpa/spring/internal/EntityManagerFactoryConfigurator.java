@@ -334,9 +334,9 @@ class EntityManagerFactoryConfigurator {
             case DB2:
                 return DB2Dialect.class;
             case DB2_AS400:
-                return DB2400Dialect.class;
+                return DB2iDialect.class;
             case DERBY:
-                return DerbyDialect.class;
+                return null;
             case H2:
                 return H2Dialect.class;
             case HSQL:
@@ -352,7 +352,7 @@ class EntityManagerFactoryConfigurator {
             case SQL_SERVER:
                 return SQLServerDialect.class;
             case MARIADB:
-                return MySQLDialect.class;
+                return MariaDBDialect.class;
             case HANA:
                 return HANADialect.class;
             case SQLITE:

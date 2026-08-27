@@ -21,13 +21,11 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
@@ -46,15 +44,7 @@ import com.holonplatform.spring.internal.AbstractConfigPropertyRegistrar;
 import com.holonplatform.spring.internal.BeanRegistryUtils;
 import com.holonplatform.spring.internal.GenericDataContextBoundBeanDefinition;
 
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.TypeCache;
-import net.bytebuddy.TypeCache.Sort;
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.description.method.MethodDescription;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import net.bytebuddy.implementation.SuperMethodCall;
-import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.matcher.ElementMatchers;
+import com.holonplatform.jdbc.spring.EnableDataSource;
 
 /**
  * Registrar for JPA {@link Datastore} bean registration using {@link EnableJpaDatastore} annotation.
@@ -67,11 +57,6 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 	 * Logger
 	 */
 	private static final Logger logger = JpaDatastoreLogger.create();
-
-	/**
-	 * Datastore enhanced classes cache
-	 */
-	private static final TypeCache<String> DATASTORE_PROXY_CACHE = new TypeCache<>(Sort.WEAK);
 
 	/**
 	 * Beans class loader
@@ -168,22 +153,19 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 						() -> jpaDatastoreConfig.getConfigPropertyValue(JpaDatastoreConfigProperties.AUTO_FLUSH))
 				.orElse(false);
 
-		if (!primary) {
-			if (registry.containsBeanDefinition(entityManagerFactoryBeanName)) {
-				BeanDefinition bd = registry.getBeanDefinition(entityManagerFactoryBeanName);
-				primary = bd.isPrimary();
-			}
+		if (!primary && registry.containsBeanDefinition(entityManagerFactoryBeanName)) {
+			primary = registry.getBeanDefinition(entityManagerFactoryBeanName).isPrimary();
 		}
+
+		// Use TransactionalJpaDatastore when transactional support is enabled — AOT-compatible replacement
+		// for the previous ByteBuddy runtime proxy.
+		Class<? extends DefaultJpaDatastore> datastoreClass = transactional
+				? TransactionalJpaDatastore.class
+				: DefaultJpaDatastore.class;
 
 		GenericDataContextBoundBeanDefinition definition = new GenericDataContextBoundBeanDefinition();
 		definition.setDataContextId(dataContextId);
-
-		Class<?> datastoreClass = transactional
-				? addTransactionalAnnotations(DefaultJpaDatastore.class, dataContextId, beanClassLoader)
-				: DefaultJpaDatastore.class;
-
 		definition.setBeanClass(datastoreClass);
-
 		definition.setAutowireCandidate(true);
 		definition.setPrimary(primary);
 		definition.setDependsOn(entityManagerFactoryBeanName);
@@ -209,6 +191,15 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 			pvs.add("dataContextId", dataContextId);
 		}
 
+		// Inject the qualified TransactionManager so TransactionalJpaDatastore uses the correct one
+		if (transactional) {
+			String tmBeanName = BeanRegistryUtils.buildBeanName(dataContextId,
+					EnableDataSource.DEFAULT_TRANSACTIONMANAGER_BEAN_NAME);
+			if (registry.containsBeanDefinition(tmBeanName)) {
+				pvs.add("transactionManager", new RuntimeBeanReference(tmBeanName));
+			}
+		}
+
 		if (datastoreConfig != null) {
 			if (datastoreConfig.isTrace()) {
 				pvs.add("traceEnabled", Boolean.TRUE);
@@ -216,10 +207,9 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 			String dialectClassName = datastoreConfig.getDialect();
 			if (dialectClassName != null) {
 				try {
-					ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName).getDeclaredConstructor().newInstance();
-					if (dialect != null) {
-						pvs.add("dialect", dialect);
-					}
+					ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName).getDeclaredConstructor()
+							.newInstance();
+					pvs.add("dialect", dialect);
 				} catch (Exception e) {
 					throw new BeanCreationException(beanName,
 							"Failed to load ORMDialect class using name [" + dialectClassName + "]", e);
@@ -228,95 +218,24 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 		}
 
 		definition.setPropertyValues(pvs);
-
-		// init method
 		definition.setInitMethodName("initialize");
 
 		registry.registerBeanDefinition(beanName, definition);
 
 		StringBuilder log = new StringBuilder();
 		if (dataContextId != null) {
-			log.append("<Data context id: ");
-			log.append(dataContextId);
-			log.append("> ");
+			log.append("<Data context id: ").append(dataContextId).append("> ");
 		}
-		log.append("Registered JPA Datastore bean with name \"");
-		log.append(beanName);
-		log.append("\"");
+		log.append("Registered JPA Datastore bean with name \"").append(beanName).append("\"");
 		if (dataContextId != null) {
-			log.append(" and qualifier \"");
-			log.append(dataContextId);
-			log.append("\"");
+			log.append(" and qualifier \"").append(dataContextId).append("\"");
 		}
-		log.append(" bound to EntityManagerFactory bean: ");
-		log.append(entityManagerFactoryBeanName);
+		log.append(" bound to EntityManagerFactory bean: ").append(entityManagerFactoryBeanName);
 		logger.info(log.toString());
 
 		return beanName;
 
 	}
 
-	private static final ElementMatcher<MethodDescription> TRANSACTIONAL_METHOD_NAMES = ElementMatchers.named("refresh")
-			.or(ElementMatchers.named("save")).or(ElementMatchers.named("delete")).or(ElementMatchers.named("insert"))
-			.or(ElementMatchers.named("update"));
-
-	private static final ElementMatcher<MethodDescription> TRANSACTIONAL_METHODS = ElementMatchers.isPublic()
-			.and(TRANSACTIONAL_METHOD_NAMES);
-
-	/**
-	 * Add Spring {@link Transactional} annotation to the Datastore class suitable methods.
-	 * @param datastoreClass Datastore class
-	 * @param dataContextId Data context id
-	 * @param classLoader Datastore class ClassLoader
-	 * @return Modified Datastore class
-	 */
-	private synchronized static <T extends Datastore> Class<?> addTransactionalAnnotations(
-			Class<? extends T> datastoreClass, String dataContextId, ClassLoader classLoader) {
-
-		// Proxy class name
-		final StringBuilder nameBuilder = new StringBuilder();
-		nameBuilder.append(datastoreClass.getName());
-		nameBuilder.append("$Proxy$");
-		if (dataContextId != null) {
-			nameBuilder.append(dataContextId);
-		} else {
-			nameBuilder.append("default");
-		}
-		nameBuilder.append("$");
-		nameBuilder.append(classLoader.hashCode());
-
-		final String proxyName = nameBuilder.toString();
-
-		// check cache
-		Class<?> cached = DATASTORE_PROXY_CACHE.find(classLoader, proxyName);
-		if (cached != null) {
-			return cached;
-		}
-
-		try {
-
-			// Transactional annotation
-			AnnotationDescription.Builder annotationBuilder = AnnotationDescription.Builder.ofType(Transactional.class);
-			if (dataContextId != null) {
-				annotationBuilder = annotationBuilder.define("value", dataContextId);
-			}
-			final AnnotationDescription transactionalAnnotation = annotationBuilder.build();
-
-			// Build proxy class
-			Class<?> proxy = new ByteBuddy().subclass(datastoreClass).name(proxyName).method(TRANSACTIONAL_METHODS)
-					.intercept(SuperMethodCall.INSTANCE).annotateMethod(transactionalAnnotation).make()
-					.load(classLoader, ClassLoadingStrategy.Default.INJECTION).getLoaded();
-
-			DATASTORE_PROXY_CACHE.insert(classLoader, proxyName, proxy);
-
-			return proxy;
-
-		} catch (Exception e) {
-			logger.warn("Failed to enhance datastore class [" + datastoreClass.getName()
-					+ "] with transactional annotations", e);
-		}
-
-		return datastoreClass;
-	}
-
 }
+

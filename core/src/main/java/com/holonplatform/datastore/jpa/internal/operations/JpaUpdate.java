@@ -15,15 +15,25 @@
  */
 package com.holonplatform.datastore.jpa.internal.operations;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.SingularAttribute;
+
+import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
 import com.holonplatform.core.datastore.Datastore.OperationType;
 import com.holonplatform.core.datastore.DatastoreCommodityContext.CommodityConfigurationException;
 import com.holonplatform.core.datastore.DatastoreCommodityFactory;
 import com.holonplatform.core.datastore.operation.Update;
+import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.operation.AbstractUpdate;
+import com.holonplatform.core.property.PathProperty;
+import com.holonplatform.core.property.PathPropertyBoxAdapter;
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
 import com.holonplatform.datastore.jpa.config.JpaDatastoreCommodityContext;
 import com.holonplatform.datastore.jpa.context.JpaOperationContext;
+import com.holonplatform.datastore.jpa.internal.JpaDatastoreLogger;
 import com.holonplatform.datastore.jpa.jpql.context.JPQLResolutionContext;
 import com.holonplatform.datastore.jpa.jpql.expression.JpaEntity;
 
@@ -35,6 +45,8 @@ import com.holonplatform.datastore.jpa.jpql.expression.JpaEntity;
 public class JpaUpdate extends AbstractUpdate {
 
 	private static final long serialVersionUID = 118863316193871221L;
+
+	private final static Logger LOGGER = JpaDatastoreLogger.create();
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -77,11 +89,12 @@ public class JpaUpdate extends AbstractUpdate {
 
 		return operationContext.withEntityManager(entityManager -> {
 
-			// create a new instance
-			Object instance = entity.newInstance();
+			// Use BeanPropertySet so we can read back the @Version from the merge result
+			final BeanPropertySet<Object> set = operationContext.getBeanIntrospector().getPropertySet(entity);
 
-			// merge entity
-			entityManager.merge(operationContext.getBeanIntrospector().write(getConfiguration().getValue(), instance));
+			// merge entity — capture the returned managed instance which carries
+			// the DB-incremented @Version value
+			Object mergedInstance = entityManager.merge(set.write(getConfiguration().getValue(), entity.newInstance()));
 
 			operationContext.traceOperation("MERGE entity [" + entity.getName() + "]");
 
@@ -92,9 +105,49 @@ public class JpaUpdate extends AbstractUpdate {
 				operationContext.traceOperation("FLUSH EntityManager");
 			}
 
+			// Always write back @Version from the merged (managed) instance into the
+			// PropertyBox. Without this the caller's PropertyBox holds a stale version and
+			// any subsequent update in a new transaction throws OptimisticLockException.
+			writeBackVersion(entityManager, set, entity, mergedInstance, getConfiguration().getValue());
+
 			return OperationResult.builder().type(OperationType.UPDATE).affectedCount(1).build();
 
 		});
+	}
+
+	/**
+	 * Reads the @Version attribute from the managed (post-merge) entity instance and
+	 * writes its current value back into the caller's PropertyBox.
+	 *
+	 * <p>Hibernate increments {@code @Version} only at flush time, not during
+	 * {@code merge()}. Therefore this method flushes the EntityManager first so that
+	 * the managed {@code mergedInstance} carries the new version value before we read
+	 * it back. A second flush on an already-clean context is a no-op, so callers that
+	 * have already flushed pay no extra cost.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void writeBackVersion(EntityManager entityManager, BeanPropertySet<Object> set,
+			Class<?> entity, Object mergedInstance, PropertyBox propertyBox) {
+		try {
+			EntityType et = entityManager.getMetamodel().entity(entity);
+			et.getSingularAttributes().stream()
+					.filter(a -> ((SingularAttribute) a).isVersion())
+					.findFirst()
+					.ifPresent(versionAttr -> {
+						set.getProperty(((SingularAttribute) versionAttr).getName()).ifPresent(p -> {
+							// Flush so Hibernate actually issues the UPDATE and increments the
+							// version field in the managed entity before we read it back.
+							entityManager.flush();
+							Object versionValue = set.read((PathProperty<Object>) p, mergedInstance);
+							PathPropertyBoxAdapter adapter = PathPropertyBoxAdapter.create(propertyBox);
+							if (adapter.contains(p)) {
+								adapter.setValue(p, versionValue);
+							}
+						});
+					});
+		} catch (Exception e) {
+			LOGGER.warn("Failed to write back @Version attribute after merge", e);
+		}
 	}
 
 }

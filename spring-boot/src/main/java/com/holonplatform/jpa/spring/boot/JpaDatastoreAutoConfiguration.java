@@ -22,7 +22,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Import;
 
 import com.holonplatform.core.datastore.Datastore;
@@ -30,11 +30,6 @@ import com.holonplatform.datastore.jpa.JpaDatastore;
 import com.holonplatform.jpa.spring.boot.internal.JpaDatastoreAutoConfigurationRegistrar;
 import com.holonplatform.spring.EnableDatastoreConfiguration;
 
-/**
- * Spring boot auto-configuration to enable JPA {@link Datastore} beans.
- * 
- * @since 5.0.0
- */
 @AutoConfiguration
 @ConditionalOnClass(JpaDatastore.class)
 @AutoConfigureAfter({HibernateJpaAutoConfiguration.class, JpaAutoConfiguration.class})

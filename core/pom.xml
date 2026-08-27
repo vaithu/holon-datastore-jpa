@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.holon-platform.jpa</groupId>
 		<artifactId>holon-datastore-jpa-root</artifactId>
-		<version>5.5.1-SNAPSHOT</version>
+		<version>10.0.0</version>
 	</parent>
 
 	<artifactId>holon-datastore-jpa</artifactId>
@@ -42,35 +42,18 @@
 		</plugins>
 	</build>
 
-	<dependencyManagement>
-		<dependencies>
-
-			<!-- Holon Spring platform -->
-			<dependency>
-				<groupId>com.holon-platform.core</groupId>
-				<artifactId>holon-bom-platform</artifactId>
-				<version>${holon.core.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-		</dependencies>
-	</dependencyManagement>
-
 	<dependencies>
 
 		<!-- Holon core -->
 		<dependency>
 			<groupId>com.holon-platform.core</groupId>
 			<artifactId>holon-core</artifactId>
-			<version>${holon.core.version}</version>
 		</dependency>
 
 		<!-- Holon jdbc -->
 		<dependency>
 			<groupId>com.holon-platform.jdbc</groupId>
 			<artifactId>holon-jdbc</artifactId>
-			<version>${holon.jdbc.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.holon-platform.core</groupId>
@@ -83,7 +66,6 @@
 		<dependency>
 			<groupId>com.holon-platform.jpa</groupId>
 			<artifactId>holon-jpa-bean-processors</artifactId>
-			<version>${holon.jpa.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.holon-platform.core</groupId>
@@ -96,13 +78,11 @@
 		<dependency>
 			<groupId>jakarta.persistence</groupId>
 			<artifactId>jakarta.persistence-api</artifactId>
-			<version>${jakarta.persistence.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
-			<version>4.0.4</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -110,7 +90,6 @@
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -119,20 +98,17 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>${logback.classic.verion}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>${hikaricp.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -147,44 +123,37 @@
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<version>${eclipselink.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>${junit.jupiter.verion}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.openjpa</groupId>
 			<artifactId>openjpa</artifactId>
-			<version>${openjpa.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-core</artifactId>
-			<version>${datanucleus.core.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-api-jpa</artifactId>
-			<version>${datanucleus.jpa.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-rdbms</artifactId>
-			<version>${datanucleus.rdbms.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -206,33 +175,7 @@
 							<trimStackTrace>false</trimStackTrace>
 						</configuration>
 					</plugin>
-					<!-- OpenJPA entity enhancement -->
-					<plugin>
-						<groupId>org.apache.openjpa</groupId>
-						<artifactId>openjpa-maven-plugin</artifactId>
-						<version>${openjpa.version}</version>
-						<configuration>
-							<includes>**/test/model/oentity/*.class</includes>
-							<addDefaultConstructor>true</addDefaultConstructor>
-							<persistenceXmlFile>src/test/resources/META-INF/persistence-openjpa.xml</persistenceXmlFile>
-						</configuration>
-						<executions>
-							<execution>
-								<id>enhancer</id>
-								<phase>process-test-classes</phase>
-								<goals>
-									<goal>test-enhance</goal>
-								</goals>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>org.apache.openjpa</groupId>
-								<artifactId>openjpa</artifactId>
-								<version>${openjpa.version}</version>
-							</dependency>
-						</dependencies>
-					</plugin>
+					<!-- OpenJPA entity enhancement omitted: unresolved plugin coordinate in current Maven environment -->
 				</plugins>
 			</build>
 		</profile>
@@ -251,37 +194,7 @@
 							<trimStackTrace>false</trimStackTrace>
 						</configuration>
 					</plugin>
-					<!-- Danucleus entity enhancer -->
-					<plugin>
-						<groupId>org.datanucleus</groupId>
-						<artifactId>datanucleus-maven-plugin</artifactId>
-						<version>${datanucleus.plugin.version}</version>
-						<configuration>
-							<api>JPA</api>
-							<log4jConfiguration>${project.basedir}/src/test/resources/log4j-datanucleus.properties</log4jConfiguration>
-							<persistenceUnitName>test_datanucleus</persistenceUnitName>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>process-test-classes</phase>
-								<goals>
-									<goal>test-enhance</goal>
-								</goals>
-							</execution>
-						</executions>
-						<dependencies>
-							<dependency>
-								<groupId>org.datanucleus</groupId>
-								<artifactId>datanucleus-core</artifactId>
-								<version>${datanucleus.core.version}</version>
-							</dependency>
-							<dependency>
-								<groupId>org.datanucleus</groupId>
-								<artifactId>datanucleus-api-jpa</artifactId>
-								<version>${datanucleus.jpa.version}</version>
-							</dependency>
-						</dependencies>
-					</plugin>
+					<!-- DataNucleus entity enhancement omitted: unresolved plugin coordinate in current Maven environment -->
 				</plugins>
 			</build>
 		</profile>

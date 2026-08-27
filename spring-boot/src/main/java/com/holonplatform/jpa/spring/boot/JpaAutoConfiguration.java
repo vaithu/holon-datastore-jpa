@@ -23,9 +23,9 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
@@ -50,7 +50,7 @@ public class JpaAutoConfiguration {
 
 	private final static Logger LOGGER = JpaDatastoreLogger.create();
 
-	@ConditionalOnMissingBean(name = { "jakarta.persistence.EntityManagerFactory",
+	@ConditionalOnMissingBean(type = { "jakarta.persistence.EntityManagerFactory",
 			"org.springframework.orm.jpa.LocalEntityManagerFactoryBean" })
 	@Import(JpaAutoConfigurationRegistrar.class)
 	static class JpaStackConfiguration implements InitializingBean {
