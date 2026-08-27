@@ -46,6 +46,8 @@ import com.holonplatform.spring.internal.GenericDataContextBoundBeanDefinition;
 
 import com.holonplatform.jdbc.spring.EnableDataSource;
 
+import org.springframework.util.ClassUtils;
+
 /**
  * Registrar for JPA {@link Datastore} bean registration using {@link EnableJpaDatastore} annotation.
  * 
@@ -157,10 +159,15 @@ public class JpaDatastoreRegistrar extends AbstractConfigPropertyRegistrar imple
 			primary = registry.getBeanDefinition(entityManagerFactoryBeanName).isPrimary();
 		}
 
-		// Use TransactionalJpaDatastore when transactional support is enabled — AOT-compatible replacement
-		// for the previous ByteBuddy runtime proxy.
+		// Use ObservableJpaDatastore when micrometer-observation is on the classpath so that every
+		// EntityManager unit of work is automatically instrumented with a Micrometer Observation.
+		// The ObservationRegistry is injected via @Autowired(required=false) on the setter, so no
+		// explicit property value is needed here. Falls back to TransactionalJpaDatastore when
+		// Micrometer is absent — the ObservableJpaDatastore class is never loaded in that case.
+		boolean hasObservation = ClassUtils.isPresent(
+				"io.micrometer.observation.ObservationRegistry", beanClassLoader);
 		Class<? extends DefaultJpaDatastore> datastoreClass = transactional
-				? TransactionalJpaDatastore.class
+				? (hasObservation ? ObservableJpaDatastore.class : TransactionalJpaDatastore.class)
 				: DefaultJpaDatastore.class;
 
 		GenericDataContextBoundBeanDefinition definition = new GenericDataContextBoundBeanDefinition();
