@@ -22,6 +22,9 @@ import org.springframework.beans.factory.BeanRegistrar;
 import org.springframework.beans.factory.BeanRegistry;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.ClassUtils;
+
+import io.micrometer.observation.ObservationRegistry;
 
 import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
@@ -31,6 +34,7 @@ import com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore;
 import com.holonplatform.jpa.spring.EnableJpaDatastore;
 import com.holonplatform.jpa.spring.JpaDatastoreConfigProperties;
 import com.holonplatform.jpa.spring.SpringEntityManagerLifecycleHandler;
+import com.holonplatform.jpa.spring.internal.ObservableJpaDatastore;
 import com.holonplatform.jpa.spring.internal.TransactionalJpaDatastore;
 import com.holonplatform.spring.EnvironmentConfigPropertyProvider;
 
@@ -61,10 +65,18 @@ public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 		boolean trace = datastoreConfig.isTrace();
 		String dialectClassName = datastoreConfig.getDialect();
 
-		// TransactionalJpaDatastore is the AOT-visible concrete type — no runtime proxy needed
+		// Use ObservableJpaDatastore when micrometer-observation is on the classpath (e.g., Actuator present)
+		// so every EntityManager unit of work is automatically traced. Falls back to TransactionalJpaDatastore
+		// when Micrometer is absent — guarding the class reference so ObservableJpaDatastore is never loaded
+		// unless Micrometer is actually available.
+		boolean hasObservation = ClassUtils.isPresent(
+				"io.micrometer.observation.ObservationRegistry",
+				JpaDatastoreAutoConfigurationRegistrar.class.getClassLoader());
+
 		@SuppressWarnings("unchecked")
-		Class<DefaultJpaDatastore> datastoreClass = (Class<DefaultJpaDatastore>) (transactional
-				? TransactionalJpaDatastore.class
+		Class<DefaultJpaDatastore> datastoreClass = (Class<DefaultJpaDatastore>) (
+				transactional && hasObservation ? ObservableJpaDatastore.class
+				: transactional ? TransactionalJpaDatastore.class
 				: DefaultJpaDatastore.class);
 
 		String beanName = EnableJpaDatastore.DEFAULT_DATASTORE_BEAN_NAME;
@@ -96,6 +108,12 @@ public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 					ctx.beanProvider(PlatformTransactionManager.class)
 							.ifUnique(txDs::setTransactionManager);
 				}
+					// Inject ObservationRegistry when micrometer is present — guarded by hasObservation
+					// so ObservableJpaDatastore is never instantiated or loaded without micrometer
+					if (hasObservation && ds instanceof ObservableJpaDatastore obsDs) {
+						ctx.beanProvider(ObservationRegistry.class)
+								.ifAvailable(obsDs::setObservationRegistry);
+					}
 				if (dialectClassName != null) {
 					try {
 						ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName)

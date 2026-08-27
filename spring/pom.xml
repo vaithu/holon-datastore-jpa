@@ -49,6 +49,13 @@
 			<artifactId>jakarta.persistence-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- Micrometer Observability (optional: instrumented when ObservationRegistry bean is available) -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-observation</artifactId>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
