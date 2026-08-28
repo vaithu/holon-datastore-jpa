@@ -122,6 +122,13 @@
 			<artifactId>spring-orm</artifactId>
 		</dependency>
 
+		<!-- Spring Data Commons (optional: for PageAdapter/SliceAdapter) -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 	</dependencies>
 
 	<build>
