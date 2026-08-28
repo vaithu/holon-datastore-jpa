@@ -45,6 +45,11 @@ See [Getting started](#getting-started) and the [platform documentation](https:/
 - [📖 Spring Data Integration (New in Version 12.0.0+)](#-spring-data-integration-new-in-version-1200)
   - [Pagination Adapters](#pagination-adapters)
   - [Lazy Loading with Slices](#lazy-loading-with-slices)
+- [🔍 Dynamic Filter Patterns (New in Version 12.0.0+)](#-dynamic-filter-patterns-new-in-version-1200)
+  - [Type-Safe Query Building](#type-safe-query-building)
+  - [FilterBuilder Quick Start](#filterbuilder-quick-start)
+  - [Pattern Matching for Runtime Evaluation](#pattern-matching-for-runtime-evaluation)
+  - [Real-World Example: REST Search API](#real-world-example-rest-search-api)
 - [At-a-glance overview](#at-a-glance-overview)
 - [Code structure](#code-structure)
 - [Getting started](#getting-started)
@@ -790,6 +795,267 @@ if (SortMapper.validate(sort)) {
     // Proceed with query
 }
 ```
+
+---
+
+## 🔍 Dynamic Filter Patterns (New in Version 12.0.0+)
+
+The **FilterBuilder** and **PatternMatcher** provide type-safe, fluent APIs for dynamic query construction and runtime condition evaluation. Perfect for REST APIs, service layer filtering, and advanced query validation.
+
+### Type-Safe Query Building
+
+**QueryCondition** is a sealed interface providing compile-time safety for filter expressions:
+
+```java
+// Three types of conditions with exhaustive pattern matching
+sealed interface QueryCondition {
+    // Constant values
+    record QueryValue(Object value) implements QueryCondition { }
+    
+    // String operator predicates
+    record QueryPredicate(String property, String operator) implements QueryCondition { }
+    
+    // Typed comparisons with ComparisonOp enum (11 operators)
+    record QueryComparison(String property, ComparisonOp op, Object value) implements QueryCondition { }
+    
+    enum ComparisonOp {
+        EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN,
+        GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL,
+        IN, NOT_IN, LIKE, IS_NULL, IS_NOT_NULL
+    }
+}
+```
+
+### FilterBuilder Quick Start
+
+Build filters fluently for dynamic queries:
+
+```java
+// Simple filters
+FilterBuilder fb = FilterBuilder.start()
+    .eq("status", "ACTIVE")
+    .gte("salary", 50000);
+
+// Complex chained filters
+FilterBuilder complexFilter = FilterBuilder.start()
+    .like("firstName", "John%")
+    .gte("age", 18)
+    .lte("age", 65)
+    .in("department", List.of("IT", "HR", "Finance"))
+    .ne("status", "INACTIVE")
+    .isNotNull("email");
+
+// Get immutable conditions
+List<QueryCondition> conditions = complexFilter.build();
+```
+
+**Available Methods:**
+
+| Method | Example | SQL Equivalent |
+|--------|---------|-----------------|
+| `eq(prop, val)` | `.eq("name", "John")` | `name = 'John'` |
+| `ne(prop, val)` | `.ne("status", "deleted")` | `status != 'deleted'` |
+| `gt(prop, val)` | `.gt("age", 18)` | `age > 18` |
+| `lt(prop, val)` | `.lt("age", 65)` | `age < 65` |
+| `gte(prop, val)` | `.gte("salary", 50000)` | `salary >= 50000` |
+| `lte(prop, val)` | `.lte("salary", 100000)` | `salary <= 100000` |
+| `in(prop, list)` | `.in("dept", ["IT","HR"])` | `dept IN ('IT','HR')` |
+| `notIn(prop, list)` | `.notIn("status", ["deleted"])` | `status NOT IN ('deleted')` |
+| `like(prop, pat)` | `.like("email", "%@company.com")` | `email LIKE '%@company.com'` |
+| `isNull(prop)` | `.isNull("middleName")` | `middle_name IS NULL` |
+| `isNotNull(prop)` | `.isNotNull("email")` | `email IS NOT NULL` |
+
+**Utility Methods:**
+
+```java
+// Check if empty
+boolean hasFilters = !fb.isEmpty();
+
+// Get current size
+int count = fb.size();  // Returns 2 for 2 conditions
+
+// Get conditions (immutable)
+List<QueryCondition> conditions = fb.getConditions();
+
+// Clear and reuse builder
+fb.clear();  // Returns builder for chaining
+fb.eq("newField", "newValue");
+```
+
+### Pattern Matching for Runtime Evaluation
+
+**PatternMatcher** evaluates conditions against values at runtime:
+
+```java
+// Create a condition
+QueryCondition condition = new QueryCondition.QueryComparison(
+    "age", QueryCondition.ComparisonOp.GREATER_THAN_OR_EQUAL, 18
+);
+
+// Test if values match
+boolean isAdult = PatternMatcher.matches(condition, 25);      // true
+boolean isTooYoung = PatternMatcher.matches(condition, 16);   // false
+
+// Validate condition completeness
+boolean isValid = PatternMatcher.isValid(condition);          // true
+```
+
+**Supported Operators with Type Coercion:**
+
+```java
+// Numeric comparisons work with mixed types (Int, Long, Float, Double)
+var ageOp = new QueryCondition.QueryComparison(
+    "age", QueryCondition.ComparisonOp.GREATER_THAN, 21
+);
+PatternMatcher.matches(ageOp, 25);      // true - Int vs Int
+PatternMatcher.matches(ageOp, 25L);     // true - Int vs Long
+PatternMatcher.matches(ageOp, 25.5);    // true - Int vs Float
+
+// Collection operations with null safety
+var notInOp = new QueryCondition.QueryComparison(
+    "status", QueryCondition.ComparisonOp.NOT_IN, 
+    List.of("deleted", "archived")
+);
+PatternMatcher.matches(notInOp, "active");  // true
+PatternMatcher.matches(notInOp, null);      // false (null never in list)
+
+// Pattern matching with SQL wildcards (% and _)
+var likeOp = new QueryCondition.QueryComparison(
+    "email", QueryCondition.ComparisonOp.LIKE, "%@company.com"
+);
+PatternMatcher.matches(likeOp, "john@company.com");    // true
+PatternMatcher.matches(likeOp, "jane@company.com");    // true
+PatternMatcher.matches(likeOp, "john@other.com");      // false
+```
+
+### Real-World Example: REST Search API
+
+Complete end-to-end example for a search endpoint:
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserSearchController {
+    
+    @Autowired
+    private JpaDatastore datastore;
+    
+    @GetMapping("/search")
+    public ResponseEntity<Page<PropertyBox>> search(
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) Integer minAge,
+            @RequestParam(required = false) Integer maxAge,
+            @RequestParam(required = false) List<String> departments,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        // Build filters dynamically from query parameters
+        FilterBuilder filters = FilterBuilder.start();
+        
+        if (firstName != null && !firstName.isEmpty()) {
+            filters.like("firstName", firstName + "%");
+        }
+        
+        if (minAge != null) {
+            filters.gte("age", minAge);
+        }
+        
+        if (maxAge != null) {
+            filters.lte("age", maxAge);
+        }
+        
+        if (departments != null && !departments.isEmpty()) {
+            filters.in("department", departments);
+        }
+        
+        if (status != null && !status.isEmpty()) {
+            filters.eq("status", status);
+        } else {
+            filters.ne("status", "INACTIVE");  // Default: exclude inactive
+        }
+        
+        // Build and execute query
+        Query query = datastore.query(User.class);
+        
+        // Apply filters to query (implementation-dependent)
+        // This demonstrates the pattern; actual integration depends on Query API
+        
+        List<QueryCondition> conditions = filters.build();
+        LOG.info("Applied {} filters", conditions.size());
+        
+        // Execute with pagination
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PropertyBox> results = new PageAdapter(query, User.class)
+            .page(pageable);
+        
+        return ResponseEntity.ok(results);
+    }
+    
+    @PostMapping("/validate-filter")
+    public ResponseEntity<Map<String, Object>> validateFilter(
+            @RequestBody Map<String, Object> filterRequest) {
+        
+        // Validate incoming filter parameters
+        FilterBuilder filter = FilterBuilder.start();
+        Map<String, Object> validationResults = new HashMap<>();
+        
+        try {
+            // Build filter from request
+            if (filterRequest.containsKey("firstName")) {
+                filter.like("firstName", (String) filterRequest.get("firstName"));
+            }
+            if (filterRequest.containsKey("minAge")) {
+                filter.gte("age", ((Number) filterRequest.get("minAge")).intValue());
+            }
+            
+            // Validate all conditions
+            for (QueryCondition condition : filter.getConditions()) {
+                boolean isValid = PatternMatcher.isValid(condition);
+                validationResults.put(condition.toString(), isValid);
+            }
+            
+            validationResults.put("status", "valid");
+            return ResponseEntity.ok(validationResults);
+            
+        } catch (Exception e) {
+            validationResults.put("status", "invalid");
+            validationResults.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(validationResults);
+        }
+    }
+}
+```
+
+**Performance Benefits:**
+
+| Feature | Benefit |
+|---------|---------|
+| **Type Safety** | Compile-time checking via sealed interfaces |
+| **Flexibility** | Supports any property name and value type |
+| **Reusability** | FilterBuilder can be used in multiple layers |
+| **Clean DSL** | Natural fluent API for complex filters |
+| **Null Safety** | Proper handling of null values in all operations |
+| **Type Coercion** | Automatic numeric type conversion for comparisons |
+
+**Comparison with Alternatives:**
+
+| Approach | Type Safety | Fluent | Reusable | Performance |
+|----------|-------------|--------|----------|------------|
+| **FilterBuilder** | ✅ High (sealed) | ✅ Yes | ✅ Yes | ✅ O(1) |
+| **Raw JPQL** | ❌ None | ❌ No | ❌ Scattered | ✅ Native |
+| **Criteria API** | ✅ Medium | ⚠️ Verbose | ✅ Yes | ✅ Native |
+| **String concat** | ❌ None | ❌ No | ❌ No | ✅ Native |
+
+### Use Cases
+
+1. **REST API Filtering** - Dynamic WHERE clauses from query parameters
+2. **Service Layer** - Type-safe filter construction across layers
+3. **Search & Filter** - Complex multi-criteria searches
+4. **Validation** - Runtime condition verification
+5. **Audit Logging** - Filter conditions for tracking
+6. **Testing** - Deterministic condition building for tests
+7. **Caching** - Filter-based cache key generation
 
 ---
 
