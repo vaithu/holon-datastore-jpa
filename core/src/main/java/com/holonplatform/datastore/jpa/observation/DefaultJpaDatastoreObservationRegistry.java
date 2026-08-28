@@ -27,6 +27,21 @@ import java.util.function.Consumer;
  * This thread-safe implementation maintains a list of registered listeners and
  * distributes observation events to all listeners in the order they were registered.
  * </p>
+ * <p>
+ * Follows the Holon Platform fluent builder pattern for creation and configuration.
+ * </p>
+ * <p>
+ * Example usage:
+ * <pre>
+ * JpaDatastoreObservationRegistry registry = DefaultJpaDatastoreObservationRegistry.builder()
+ *     .listener(event -> System.out.println("Operation: " + event.getOperationName()))
+ *     .build();
+ *
+ * // Or create directly:
+ * JpaDatastoreObservationRegistry registry = DefaultJpaDatastoreObservationRegistry.create();
+ * registry.registerListener(event -> ...);
+ * </pre>
+ * </p>
  *
  * @since 10.0.0
  */
@@ -38,6 +53,22 @@ public class DefaultJpaDatastoreObservationRegistry implements JpaDatastoreObser
 	 * Create a new default observation registry.
 	 */
 	public DefaultJpaDatastoreObservationRegistry() {
+	}
+
+	/**
+	 * Get a builder to create a {@link DefaultJpaDatastoreObservationRegistry} instance.
+	 * @return Builder instance
+	 */
+	public static Builder builder() {
+		return new DefaultBuilder();
+	}
+
+	/**
+	 * Create a new default observation registry instance.
+	 * @return A new registry
+	 */
+	public static DefaultJpaDatastoreObservationRegistry create() {
+		return new DefaultJpaDatastoreObservationRegistry();
 	}
 
 	@Override
@@ -162,6 +193,73 @@ public class DefaultJpaDatastoreObservationRegistry implements JpaDatastoreObser
 	 */
 	public int getListenerCount() {
 		return listeners.size();
+	}
+
+	// ==================== Builder Interface ====================
+
+	/**
+	 * Builder for creating {@link DefaultJpaDatastoreObservationRegistry} instances using fluent API.
+	 * <p>
+	 * Follows the Holon Platform fluent builder pattern for chainable configuration.
+	 * </p>
+	 */
+	public interface Builder {
+
+		/**
+		 * Add a listener to the registry.
+		 *
+		 * @param listener The listener (not null)
+		 * @return this
+		 */
+		Builder listener(JpaDatastoreObservationListener listener);
+
+		/**
+		 * Add multiple listeners to the registry.
+		 *
+		 * @param listeners The listeners (not null)
+		 * @return this
+		 */
+		Builder listeners(JpaDatastoreObservationListener... listeners);
+
+		/**
+		 * Build the {@link DefaultJpaDatastoreObservationRegistry} instance.
+		 *
+		 * @return A new registry
+		 */
+		DefaultJpaDatastoreObservationRegistry build();
+	}
+
+	/**
+	 * Default {@link Builder} implementation.
+	 */
+	private static final class DefaultBuilder implements Builder {
+
+		private final List<JpaDatastoreObservationListener> listeners = new ArrayList<>();
+
+		@Override
+		public Builder listener(JpaDatastoreObservationListener listener) {
+			Objects.requireNonNull(listener, "Listener cannot be null");
+			listeners.add(listener);
+			return this;
+		}
+
+		@Override
+		public Builder listeners(JpaDatastoreObservationListener... listeners) {
+			Objects.requireNonNull(listeners, "Listeners cannot be null");
+			for (JpaDatastoreObservationListener listener : listeners) {
+				listener(listener);
+			}
+			return this;
+		}
+
+		@Override
+		public DefaultJpaDatastoreObservationRegistry build() {
+			DefaultJpaDatastoreObservationRegistry registry = new DefaultJpaDatastoreObservationRegistry();
+			for (JpaDatastoreObservationListener listener : listeners) {
+				registry.registerListener(listener);
+			}
+			return registry;
+		}
 	}
 
 }

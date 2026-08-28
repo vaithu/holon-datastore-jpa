@@ -30,8 +30,19 @@ import org.slf4j.MDC;
  * that integrates with MDC (Mapped Diagnostic Context) for distributed tracing.
  * </p>
  * <p>
+ * Follows the Holon Platform fluent builder pattern.
+ * </p>
+ * <p>
  * Example usage:
  * <pre>
+ * StructuredLogger.builder()
+ *     .operation("Query")
+ *     .entity("User")
+ *     .duration(150)
+ *     .build()
+ *     .info("Query executed successfully");
+ *
+ * // Or using static factory method:
  * StructuredLogger.forDatastore("Query")
  *     .withEntity("User")
  *     .withDuration(duration)
@@ -53,6 +64,14 @@ public final class StructuredLogger {
 
 	private final Logger logger;
 	private final Map<String, String> context;
+
+	/**
+	 * Get a builder to create a {@link StructuredLogger} instance.
+	 * @return Builder instance
+	 */
+	public static StructuredLoggerBuilder builder() {
+		return new StructuredLoggerBuilder();
+	}
 
 	/**
 	 * Create a structured logger for a datastore operation.
@@ -261,4 +280,107 @@ public final class StructuredLogger {
 		void execute();
 	}
 
+	// ==================== Builder Class ====================
+
+	/**
+	 * Builder for creating {@link StructuredLogger} instances using fluent API.
+	 * <p>
+	 * Follows the Holon Platform fluent builder pattern for chainable configuration.
+	 * </p>
+	 */
+	public static final class StructuredLoggerBuilder {
+
+		private final Logger logger;
+		private final Map<String, String> context = new HashMap<>();
+
+		/**
+		 * Default constructor using default logger.
+		 */
+		public StructuredLoggerBuilder() {
+			this.logger = LoggerFactory.getLogger("com.holonplatform.datastore.jpa");
+		}
+
+		/**
+		 * Constructor with custom logger.
+		 *
+		 * @param logger The logger instance (not null)
+		 */
+		public StructuredLoggerBuilder(Logger logger) {
+			this.logger = Objects.requireNonNull(logger, "Logger cannot be null");
+		}
+
+		/**
+		 * Set the operation name.
+		 *
+		 * @param operation The operation name (e.g., "Query", "Insert", "Update")
+		 * @return this
+		 */
+		public StructuredLoggerBuilder operation(String operation) {
+			Objects.requireNonNull(operation, "Operation cannot be null");
+			context.put(OPERATION_KEY, operation);
+			return this;
+		}
+
+		/**
+		 * Set the entity name.
+		 *
+		 * @param entity The entity name
+		 * @return this
+		 */
+		public StructuredLoggerBuilder entity(String entity) {
+			if (entity != null) {
+				context.put(ENTITY_KEY, entity);
+			}
+			return this;
+		}
+
+		/**
+		 * Set the operation duration in milliseconds.
+		 *
+		 * @param durationMs The duration in milliseconds
+		 * @return this
+		 */
+		public StructuredLoggerBuilder duration(long durationMs) {
+			context.put(DURATION_KEY, String.valueOf(durationMs));
+			return this;
+		}
+
+		/**
+		 * Set the record count.
+		 *
+		 * @param count The number of records
+		 * @return this
+		 */
+		public StructuredLoggerBuilder recordCount(int count) {
+			context.put(RECORD_COUNT_KEY, String.valueOf(count));
+			return this;
+		}
+
+		/**
+		 * Add a custom context value.
+		 *
+		 * @param key   The context key
+		 * @param value The context value
+		 * @return this
+		 */
+		public StructuredLoggerBuilder with(String key, String value) {
+			if (key != null && value != null) {
+				context.put(key, value);
+			}
+			return this;
+		}
+
+		/**
+		 * Build the {@link StructuredLogger} instance.
+		 *
+		 * @return A new StructuredLogger
+		 */
+		public StructuredLogger build() {
+			StructuredLogger structuredLogger = new StructuredLogger(logger);
+			structuredLogger.context.putAll(context);
+			return structuredLogger;
+		}
+	}
+
 }
+
