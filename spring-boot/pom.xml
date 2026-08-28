@@ -58,6 +58,14 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- Structured Logging (Optional) -->
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>${logstash.version}</version>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Test -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
