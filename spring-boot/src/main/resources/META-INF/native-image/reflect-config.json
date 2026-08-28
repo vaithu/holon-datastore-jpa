@@ -1,0 +1,92 @@
+[
+  {
+    "name": "com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore",
+    "methods": [
+      { "name": "<init>", "parameterTypes": [] },
+      { "name": "query", "parameterTypes": [] },
+      { "name": "create", "parameterTypes": [] },
+      { "name": "update", "parameterTypes": [] },
+      { "name": "delete", "parameterTypes": [] },
+      { "name": "refresh", "parameterTypes": [] }
+    ]
+  },
+  {
+    "name": "com.holonplatform.datastore.jpa.async.VirtualThreadDatastoreExecutor",
+    "methods": [
+      { "name": "<init>", "parameterTypes": ["com.holonplatform.datastore.jpa.JpaDatastore"] },
+      { "name": "async", "parameterTypes": [] },
+      { "name": "executeAsync", "parameterTypes": ["com.holonplatform.datastore.jpa.async.VirtualThreadDatastoreExecutor$QueryOperation"] },
+      { "name": "executeAsyncList", "parameterTypes": ["com.holonplatform.datastore.jpa.async.VirtualThreadDatastoreExecutor$QueryStreamOperation"] },
+      { "name": "executeAsyncVoid", "parameterTypes": ["com.holonplatform.datastore.jpa.async.VirtualThreadDatastoreExecutor$DatastoreOperation"] }
+    ]
+  },
+  {
+    "name": "com.holonplatform.datastore.jpa.observation.DefaultJpaDatastoreObservationRegistry",
+    "methods": [
+      { "name": "<init>", "parameterTypes": [] },
+      { "name": "addListener", "parameterTypes": ["com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationListener"] },
+      { "name": "removeListener", "parameterTypes": ["com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationListener"] },
+      { "name": "observe", "parameterTypes": ["java.lang.String", "java.util.function.Supplier"] }
+    ]
+  },
+  {
+    "name": "com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationEvent",
+    "methods": [
+      { "name": "getOperationName", "parameterTypes": [] },
+      { "name": "getDurationNanos", "parameterTypes": [] },
+      { "name": "getStartTimeNanos", "parameterTypes": [] },
+      { "name": "getEndTimeNanos", "parameterTypes": [] },
+      { "name": "getAttribute", "parameterTypes": ["java.lang.String"] }
+    ]
+  },
+  {
+    "name": "com.holonplatform.datastore.jpa.logging.StructuredLogger",
+    "methods": [
+      { "name": "with", "parameterTypes": ["java.lang.String", "java.lang.Object"] },
+      { "name": "withEntity", "parameterTypes": ["java.lang.String", "java.lang.Object"] },
+      { "name": "withDuration", "parameterTypes": ["long"] },
+      { "name": "info", "parameterTypes": ["java.lang.String"] },
+      { "name": "warn", "parameterTypes": ["java.lang.String"] },
+      { "name": "error", "parameterTypes": ["java.lang.String", "java.lang.Throwable"] }
+    ]
+  },
+  {
+    "name": "jakarta.persistence.EntityManager",
+    "methods": [
+      { "name": "find", "parameterTypes": ["java.lang.Class", "java.lang.Object"] },
+      { "name": "persist", "parameterTypes": ["java.lang.Object"] },
+      { "name": "merge", "parameterTypes": ["java.lang.Object"] },
+      { "name": "remove", "parameterTypes": ["java.lang.Object"] },
+      { "name": "flush", "parameterTypes": [] },
+      { "name": "clear", "parameterTypes": [] },
+      { "name": "createQuery", "parameterTypes": ["java.lang.String"] },
+      { "name": "createQuery", "parameterTypes": ["java.lang.String", "java.lang.Class"] }
+    ]
+  },
+  {
+    "name": "jakarta.persistence.EntityManagerFactory",
+    "methods": [
+      { "name": "createEntityManager", "parameterTypes": [] },
+      { "name": "isOpen", "parameterTypes": [] },
+      { "name": "close", "parameterTypes": [] }
+    ]
+  },
+  {
+    "name": "jakarta.persistence.Query",
+    "methods": [
+      { "name": "setParameter", "parameterTypes": ["java.lang.String", "java.lang.Object"] },
+      { "name": "getResultList", "parameterTypes": [] },
+      { "name": "getSingleResult", "parameterTypes": [] },
+      { "name": "executeUpdate", "parameterTypes": [] }
+    ]
+  },
+  {
+    "name": "jakarta.persistence.TypedQuery",
+    "methods": [
+      { "name": "setParameter", "parameterTypes": ["java.lang.String", "java.lang.Object"] },
+      { "name": "getResultList", "parameterTypes": [] },
+      { "name": "getSingleResult", "parameterTypes": [] },
+      { "name": "executeUpdate", "parameterTypes": [] }
+    ]
+  }
+]

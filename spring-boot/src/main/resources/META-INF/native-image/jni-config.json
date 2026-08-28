@@ -1,0 +1,25 @@
+[
+  {
+    "name": "java.util.concurrent.CompletableFuture",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.util.concurrent.ConcurrentHashMap",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.util.concurrent.atomic.AtomicReference",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.lang.Thread",
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "java.lang.VirtualThread",
+    "queryAllPublicMethods": true
+  }
+]
