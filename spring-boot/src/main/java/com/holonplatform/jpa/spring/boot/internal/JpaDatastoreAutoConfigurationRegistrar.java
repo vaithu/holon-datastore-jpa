@@ -104,9 +104,9 @@ public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 					ds.setTraceEnabled(true);
 				}
 				if (transactional && ds instanceof TransactionalJpaDatastore txDs) {
-					// single-context auto-config path: inject the only TM
+					// single-context auto-config path: inject the transaction manager
 					ctx.beanProvider(PlatformTransactionManager.class)
-							.ifUnique(txDs::setTransactionManager);
+							.ifAvailable(txDs::setTransactionManager);
 				}
 					// Inject ObservationRegistry when micrometer is present — guarded by hasObservation
 					// so ObservableJpaDatastore is never instantiated or loaded without micrometer
