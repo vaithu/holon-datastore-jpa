@@ -22,7 +22,9 @@ import java.util.concurrent.Future;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jpa.internal.util.AsyncQuery;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -31,26 +33,23 @@ import reactor.core.scheduler.Schedulers;
  * Provides single-value, non-blocking query results using Project Reactor's Mono.
  * Queries execute asynchronously on Schedulers.boundedElastic() for optimal I/O handling.
  * 
- * Usage:
+ * <h2>Usage Example - Fluent Builder (Recommended)</h2>
  * <pre>
- * // Example: Find first result
- * Query query = datastore.query(User.class)
- *     .filter(ID.eq(123L));
+ * Mono&lt;?&gt; mono = JpaMono.builder(query, PROPERTIES)
+ *     .scheduler(Schedulers.boundedElastic())
+ *     .build();
  * 
- * JpaMono.from(query, PROPERTIES)
- *     .map(box -> box.get(NAME))
+ * mono.map(box -> box.getValue(NAME))
  *     .doOnNext(name -> logger.info("Found: {}", name))
  *     .subscribe(System.out::println);
  * </pre>
  * 
+ * <h2>Usage Example - Static Factory</h2>
  * <pre>
- * // With error handling
  * JpaMono.from(query, PROPERTIES)
- *     .onErrorResume(ex -> {
- *         logger.error("Query failed", ex);
- *         return Mono.empty();
- *     })
- *     .block();
+ *     .map(box -> box.getValue(NAME))
+ *     .doOnNext(name -> logger.info("Found: {}", name))
+ *     .subscribe(System.out::println);
  * </pre>
  *
  * @since 12.0.0
@@ -59,6 +58,17 @@ public final class JpaMono {
 
 	private JpaMono() {
 		// utility class
+	}
+
+	/**
+	 * Start building a Mono with fluent builder pattern.
+	 *
+	 * @param query the Holon Query (must not be null)
+	 * @param properties the properties to retrieve (must not be null)
+	 * @return new builder instance
+	 */
+	public static JpaMonoBuilder builder(Query query, Iterable<?> properties) {
+		return JpaMonoBuilder.builder(query, properties);
 	}
 
 	/**
@@ -109,8 +119,24 @@ public final class JpaMono {
 	 * @return Mono emitting optional result
 	 */
 	public static Mono<?> from(Query query, Iterable<?> properties) {
+		return from(query, properties, Schedulers.boundedElastic());
+	}
+
+	/**
+	 * Execute query asynchronously and emit first result as Mono.
+	 * 
+	 * Query is executed on virtual thread executor with specified scheduler.
+	 * Returns Optional.empty() if no results found. Execution is deferred until subscription.
+	 *
+	 * @param query Query to execute (not null)
+	 * @param properties Property iterable to retrieve
+	 * @param scheduler the scheduler for async execution
+	 * @return Mono emitting optional result
+	 */
+	public static Mono<?> from(Query query, Iterable<?> properties, Scheduler scheduler) {
 		java.util.Objects.requireNonNull(query, "Query must not be null");
 		java.util.Objects.requireNonNull(properties, "Properties must not be null");
+		java.util.Objects.requireNonNull(scheduler, "Scheduler must not be null");
 
 		return Mono.defer(() -> {
 			// Wrap query with async support
@@ -120,7 +146,7 @@ public final class JpaMono {
 			return Mono.fromFuture(asyncQuery.findOneAsync(properties))
 				.flatMap(opt -> ((Optional<?>) opt).map(Mono::just).orElseGet(Mono::empty));
 		})
-		.subscribeOn(Schedulers.boundedElastic());
+		.subscribeOn(scheduler);
 	}
 
 	/**

@@ -24,6 +24,8 @@ import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jpa.internal.util.AsyncQuery;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -32,28 +34,24 @@ import reactor.core.scheduler.Schedulers;
  * Provides stream-oriented, back-pressure-aware query results using Project Reactor's Flux.
  * Queries execute asynchronously on Schedulers.boundedElastic() for optimal I/O handling.
  * 
- * Usage:
+ * <h2>Usage Example - Fluent Builder (Recommended)</h2>
  * <pre>
- * // Example: Query with Flux
- * Query query = datastore.query(User.class)
- *     .filter(ACTIVE.eq(true));
+ * Flux&lt;?&gt; flux = JpaFlux.builder(query, PROPERTIES)
+ *     .scheduler(Schedulers.boundedElastic())
+ *     .build();
  * 
- * JpaFlux.from(query, PROPERTIES)
- *     .map(box -> box.get(NAME))
+ * flux.map(box -> box.getValue(NAME))
  *     .doOnNext(name -> logger.info("Processing: {}", name))
+ *     .onBackpressureBuffer()
  *     .subscribe(System.out::println);
  * </pre>
  * 
+ * <h2>Usage Example - Static Factory</h2>
  * <pre>
- * // With back-pressure control via StepVerifier
- * StepVerifier.create(
- *     JpaFlux.from(query, PROPERTIES),
- *     1 // Request 1 item at a time
- * )
- * .expectNextCount(1)
- * .thenRequest(1)
- * .expectNextCount(1)
- * .verifyComplete();
+ * JpaFlux.from(query, PROPERTIES)
+ *     .map(box -> box.getValue(NAME))
+ *     .doOnNext(name -> logger.info("Processing: {}", name))
+ *     .subscribe(System.out::println);
  * </pre>
  *
  * @since 12.0.0
@@ -62,6 +60,17 @@ public final class JpaFlux {
 
 	private JpaFlux() {
 		// utility class
+	}
+
+	/**
+	 * Start building a Flux with fluent builder pattern.
+	 *
+	 * @param query the Holon Query (must not be null)
+	 * @param properties the properties to retrieve (must not be null)
+	 * @return new builder instance
+	 */
+	public static JpaFluxBuilder builder(Query query, Iterable<?> properties) {
+		return JpaFluxBuilder.builder(query, properties);
 	}
 
 	/**
@@ -104,8 +113,24 @@ public final class JpaFlux {
 	 * @return Flux emitting query results
 	 */
 	public static Flux<?> from(Query query, Iterable<?> properties) {
+		return from(query, properties, Schedulers.boundedElastic());
+	}
+
+	/**
+	 * Execute query asynchronously and emit results as Flux with custom scheduler.
+	 * 
+	 * Query is executed on virtual thread executor with specified scheduler.
+	 * Results are streamed with back-pressure support. Execution is deferred until subscription.
+	 *
+	 * @param query Query to execute (not null)
+	 * @param properties Property iterable to retrieve
+	 * @param scheduler the scheduler for async execution
+	 * @return Flux emitting query results
+	 */
+	public static Flux<?> from(Query query, Iterable<?> properties, Scheduler scheduler) {
 		Objects.requireNonNull(query, "Query must not be null");
 		Objects.requireNonNull(properties, "Properties must not be null");
+		Objects.requireNonNull(scheduler, "Scheduler must not be null");
 
 		return Flux.defer(() -> {
 			// Wrap query with async support
@@ -119,7 +144,7 @@ public final class JpaFlux {
 				return Flux.error(e);
 			}
 		})
-		.subscribeOn(Schedulers.boundedElastic());
+		.subscribeOn(scheduler);
 	}
 
 	/**
@@ -133,8 +158,24 @@ public final class JpaFlux {
 	 * @return Flux emitting query results in streaming fashion
 	 */
 	public static Flux<?> fromStream(Query query, Iterable<?> properties) {
+		return fromStream(query, properties, Schedulers.boundedElastic());
+	}
+
+	/**
+	 * Execute query asynchronously and emit results as Flux using stream with custom scheduler.
+	 * 
+	 * Query is executed on virtual thread executor with specified scheduler.
+	 * Results are emitted as they arrive from the stream. Offers true lazy evaluation with back-pressure.
+	 *
+	 * @param query Query to execute (not null)
+	 * @param properties Property iterable to retrieve
+	 * @param scheduler the scheduler for async execution
+	 * @return Flux emitting query results in streaming fashion
+	 */
+	public static Flux<?> fromStream(Query query, Iterable<?> properties, Scheduler scheduler) {
 		Objects.requireNonNull(query, "Query must not be null");
 		Objects.requireNonNull(properties, "Properties must not be null");
+		Objects.requireNonNull(scheduler, "Scheduler must not be null");
 
 		return Flux.defer(() -> {
 			// Wrap query with async support
@@ -148,7 +189,7 @@ public final class JpaFlux {
 				return Flux.error(e);
 			}
 		})
-		.subscribeOn(Schedulers.boundedElastic());
+		.subscribeOn(scheduler);
 	}
 
 }
