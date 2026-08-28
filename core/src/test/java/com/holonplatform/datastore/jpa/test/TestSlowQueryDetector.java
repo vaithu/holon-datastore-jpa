@@ -76,7 +76,7 @@ public class TestSlowQueryDetector {
             QueryAuditLog log = QueryAuditLog.builder()
                 .jpql("SELECT u FROM User u WHERE u.age > " + i)
                 .parameters(List.of(i))
-                .executionTimeMs(500 + i * 100)
+                .executionTimeMs(501 + i * 100)
                 .executedAt(Instant.now())
                 .rowsReturned(100 - i)
                 .successful(true)
