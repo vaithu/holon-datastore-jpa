@@ -42,6 +42,9 @@ See [Getting started](#getting-started) and the [platform documentation](https:/
   - [Real-World Example](#real-world-example-dashboard-with-caching)
   - [Cache Invalidation Strategies](#cache-invalidation-strategies)
   - [Three-Layer Performance Stack](#three-layer-performance-stack)
+- [📖 Spring Data Integration (New in Version 12.0.0+)](#-spring-data-integration-new-in-version-1200)
+  - [Pagination Adapters](#pagination-adapters)
+  - [Lazy Loading with Slices](#lazy-loading-with-slices)
 - [At-a-glance overview](#at-a-glance-overview)
 - [Code structure](#code-structure)
 - [Getting started](#getting-started)
@@ -678,6 +681,115 @@ public CompletableFuture<CachedUserStats> getUserStats() {
 | Repeat dashboard query | 50ms | <1ms | **50x** ⚡ |
 | 100 concurrent dashboard views | 5000ms | 100ms | **50x** |
 | Hot user lookup | 20ms | <1ms | **20x** |
+
+---
+
+## 📖 Spring Data Integration (New in Version 12.0.0+)
+
+Seamless integration with Spring Data repositories and REST endpoints using pagination adapters.
+
+### Pagination Adapters
+
+**PageAdapter** - Full pagination with total count:
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @Autowired
+    private JpaDatastore datastore;
+    
+    @GetMapping
+    public Page<PropertyBox> listUsers(@RequestParam Pageable pageable) {
+        Query query = datastore.query(User.class)
+            .sort(pageable.getSort());
+        
+        return new PageAdapter(query, User.class).page(pageable);
+    }
+}
+```
+
+**Benefits:**
+- Spring Data compatible Pageable/Page objects
+- Automatic pagination with total count
+- OFFSET/LIMIT optimization
+- Zero extra configuration
+
+### Lazy Loading with Slices
+
+**SliceAdapter** - Efficient lazy pagination (no COUNT query):
+
+```java
+@GetMapping("/users/lazy")
+public Slice<PropertyBox> listUsersLazy(@RequestParam Pageable pageable) {
+    Query query = datastore.query(User.class)
+        .sort(pageable.getSort());
+    
+    // Fetches one extra item to determine hasNext()
+    return new SliceAdapter(query, User.class).slice(pageable);
+}
+```
+
+**Performance:**
+- No expensive COUNT query on large result sets
+- Fetch n+1 items to detect hasNext()
+- Sub-millisecond overhead vs COUNT
+- Ideal for infinite scrolling
+
+### Comparison: Page vs Slice
+
+| Feature | Page | Slice |
+|---------|------|-------|
+| **Total Count** | ✅ Yes | ❌ No |
+| **Database Cost** | COUNT + SELECT | SELECT only (n+1) |
+| **Total Elements** | Available | Unknown |
+| **Use Case** | Pagination bars | Infinite scroll |
+| **Large Sets** | Expensive | Efficient |
+
+### Spring Data REST Example
+
+Works seamlessly with Spring Data REST endpoints:
+
+```java
+@RepositoryRestResource(path = "users")
+public interface UserRepository extends JpaRepository<User, Long> {
+    // Automatically supports ?page=0&size=20&sort=name,asc
+}
+
+// Equivalent Holon Query approach:
+@GetMapping("/api/holon-users")
+public Page<PropertyBox> holonUsers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(defaultValue = "id,desc") String sort) {
+    
+    Pageable pageable = PageRequest.of(page, size, 
+        Sort.by(Sort.Order.desc("id")));
+    
+    Query query = datastore.query(User.class)
+        .sort(pageable.getSort());
+    
+    return new PageAdapter(query, User.class).page(pageable);
+}
+```
+
+### SortMapper Utility
+
+Handle Spring Data Sort operations:
+
+```java
+// Check if sorting is specified
+Sort sort = pageable.getSort();
+if (!SortMapper.isUnsorted(sort)) {
+    // Apply custom sorting logic
+}
+
+// Validate sort parameters
+if (SortMapper.validate(sort)) {
+    // Proceed with query
+}
+```
 
 ---
 
