@@ -1,0 +1,306 @@
+🎓 LEVEL 5: QUICK REFERENCE GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 WHAT IS FilterBuilder?
+─────────────────────────
+A type-safe, fluent API for building dynamic query filters
+WITHOUT nested if statements. Perfect for REST search APIs.
+
+
+🛠️ BASIC SYNTAX
+──────────────
+
+// Start building
+FilterBuilder filters = FilterBuilder.start()
+
+// Add conditions (all use AND logic)
+    .eq("property", value)           // = equals
+    .ne("property", value)           // != not equals
+    .gt("property", value)           // > greater than
+    .gte("property", value)          // >= greater or equal
+    .lt("property", value)           // < less than
+    .lte("property", value)          // <= less or equal
+    .like("property", "%search%")   // LIKE for text search
+    .in("property", List.of(...))   // IN clause
+
+// Build the filter
+    .build();
+
+// Use in query
+datastore.query(Product.class)
+    .filter(filters.build())
+    .list(PROPERTIES);
+
+
+📋 COMMON PATTERNS
+─────────────────
+
+Pattern 1: Optional parameters (REST API)
+──────────────────────────────────────────
+FilterBuilder filters = FilterBuilder.start();
+
+if (name != null) {
+    filters.like("name", "%" + name + "%");
+}
+if (category != null) {
+    filters.eq("category", category);
+}
+if (minPrice != null) {
+    filters.gte("price", minPrice);
+}
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Only adds filters for parameters that are provided
+
+
+Pattern 2: Always-on + optional filters
+────────────────────────────────────────
+// Always filter for active products
+FilterBuilder filters = FilterBuilder.start()
+    .eq("active", true)  // This is always applied
+    .gt("quantity", 0);  // Only in stock
+
+// Add optional filters
+if (category != null) {
+    filters.eq("category", category);
+}
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Combines mandatory filters with optional ones
+
+
+Pattern 3: Text search (case-insensitive)
+──────────────────────────────────────────
+String searchTerm = request.getSearchTerm();
+
+FilterBuilder filters = FilterBuilder.start()
+    .like("name", "%" + searchTerm.toLowerCase() + "%");
+
+// Or search in multiple fields:
+// Note: Multiple like() calls = OR logic is NOT automatic
+// For OR, use .in() or multiple queries
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Good for autocomplete, product search
+
+
+Pattern 4: Range filters (price, date, etc.)
+─────────────────────────────────────────────
+BigDecimal minPrice = request.getMinPrice();
+BigDecimal maxPrice = request.getMaxPrice();
+
+FilterBuilder filters = FilterBuilder.start();
+
+if (minPrice != null) {
+    filters.gte("price", minPrice);  // price >= minPrice
+}
+if (maxPrice != null) {
+    filters.lte("price", maxPrice);  // price <= maxPrice
+}
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Common for price ranges, date ranges, ratings
+
+
+Pattern 5: Multi-value filters (IN clause)
+───────────────────────────────────────────
+List<String> vendors = request.getVendors();
+
+FilterBuilder filters = FilterBuilder.start()
+    .in("vendor", vendors);  // vendor IN (Dell, HP, Lenovo)
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Good for category selection, status filters
+
+
+Pattern 6: Role-based filtering (multi-tenant)
+───────────────────────────────────────────────
+// Always filter by tenant (security!)
+FilterBuilder filters = FilterBuilder.start()
+    .eq("tenantId", currentUser.getTenantId())
+    .eq("departmentId", currentUser.getDepartmentId());
+
+// Add optional user filters
+if (request.getStatus() != null) {
+    filters.eq("status", request.getStatus());
+}
+
+query.filter(filters.build()).list(PROPERTIES);
+
+→ Ensures users can't see other tenant's data
+
+
+🚀 REAL REST API EXAMPLE
+────────────────────────
+
+@GetMapping("/search")
+public ResponseEntity<List<ProductDTO>> search(
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(required = false, defaultValue = "false") boolean inStockOnly) {
+
+    // Build filters dynamically
+    FilterBuilder filters = FilterBuilder.start()
+        .eq("active", true);  // Always: only active products
+
+    if (name != null && !name.trim().isEmpty()) {
+        filters.like("name", "%" + name.trim() + "%");
+    }
+    if (category != null && !category.trim().isEmpty()) {
+        filters.eq("category", category);
+    }
+    if (minPrice != null) {
+        filters.gte("price", minPrice);
+    }
+    if (maxPrice != null) {
+        filters.lte("price", maxPrice);
+    }
+    if (inStockOnly) {
+        filters.gt("quantity", 0);
+    }
+
+    // Execute query
+    List<ProductDTO> results = datastore
+        .query(Product.class)
+        .filter(filters.build())
+        .orderBy(PRODUCT_NAME, true)
+        .list(PRODUCT_PROPERTIES)
+        .stream()
+        .map(ProductDTO::from)
+        .collect(Collectors.toList());
+
+    return ResponseEntity.ok(results);
+}
+
+Example requests:
+  GET /api/search?name=laptop
+  GET /api/search?category=Electronics&minPrice=100&maxPrice=500
+  GET /api/search?category=Electronics&inStockOnly=true
+  GET /api/search?name=laptop&category=Electronics&minPrice=300&maxPrice=800
+
+→ Clean, readable, handles all combinations
+
+
+❌ WHAT DOESN'T WORK
+────────────────────
+
+// ❌ OR logic is NOT automatic
+FilterBuilder filters = FilterBuilder.start()
+    .eq("category", "Electronics")
+    .eq("category", "Books");
+// This doesn't mean: category = Electronics OR Books
+// It means: category = Electronics AND category = Books (impossible!)
+
+// Instead, use IN for multiple values:
+FilterBuilder filters = FilterBuilder.start()
+    .in("category", List.of("Electronics", "Books"));
+// ✅ This works: category IN (Electronics, Books)
+
+
+💡 PERFORMANCE TIPS
+───────────────────
+
+1. Apply filters BEFORE limit/offset
+   ✅ Good:
+      query.filter(filters.build()).limit(20).list(...)
+
+   ❌ Bad:
+      query.limit(20).list(...); then filter in Java
+
+2. Use index-friendly filters
+   ✅ eq, gte, lte on indexed columns
+   ❌ like() on large text (needs FULLTEXT index)
+
+3. Combine with cache for repeated queries
+   cache.getOrCompute(cacheKey, () ->
+       datastore.query(Product.class)
+           .filter(filters.build())
+           .list(PROPERTIES)
+   );
+
+4. Use COUNT first for pagination
+   long total = datastore.query(Product.class)
+       .filter(filters.build())
+       .count();
+
+
+📚 STEP-BY-STEP: Building Your First Search
+─────────────────────────────────────────────
+
+Step 1: Define your entity properties
+────────────────────────────────────
+private static final Property<String> PRODUCT_NAME =
+    Property.stringProperty("name");
+
+private static final Property<BigDecimal> PRODUCT_PRICE =
+    Property.create(BigDecimal.class, "price");
+
+private static final PropertySet PRODUCT_PROPS =
+    PropertySet.of(PRODUCT_ID, PRODUCT_NAME, PRODUCT_CATEGORY, ...);
+
+
+Step 2: Create FilterBuilder in your controller
+──────────────────────────────────────────────
+FilterBuilder filters = FilterBuilder.start()
+    .eq("active", true);
+
+if (request.getName() != null) {
+    filters.like("name", "%" + request.getName() + "%");
+}
+
+
+Step 3: Execute the query
+──────────────────────────
+List<PropertyBox> results = datastore
+    .query(Product.class)
+    .filter(filters.build())
+    .list(PRODUCT_PROPS);
+
+
+Step 4: Return to client
+────────────────────────
+return ResponseEntity.ok(
+    results.stream()
+        .map(ProductDTO::from)
+        .collect(Collectors.toList())
+);
+
+
+🎯 KEY BENEFITS vs OLD IF-STATEMENT WAY
+────────────────────────────────────────
+
+Old Way (❌ many if statements):
+- Hard to read with 5+ filters
+- Easy to forget to add a filter
+- Hard to test individual filters
+- Mixes query logic with parameter checking
+- Not reusable
+
+New Way (✅ FilterBuilder):
+- All filters in one clear block
+- Easy to add/remove filters
+- Each filter is testable
+- Separates concerns
+- Easily reusable across methods
+- Type-safe (compile-time errors)
+
+
+🚀 NOW YOU'RE READY!
+────────────────────
+
+You can now:
+1. Build type-safe dynamic queries
+2. Handle optional parameters cleanly
+3. Create reusable filter methods
+4. Scale to complex search APIs
+
+Next time you need a search endpoint, use FilterBuilder!
+
+═════════════════════════════════════════════════════════════════════════════════

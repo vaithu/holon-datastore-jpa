@@ -18,3 +18,5 @@
 1787943529138|1|statement|connection 27|url jdbc:h2:mem:testdb1|drop table if exists test1 cascade |drop table if exists test1 cascade 
 1787944493744|1|statement|connection 27|url jdbc:h2:mem:testdb1|drop table if exists test1 cascade |drop table if exists test1 cascade 
 1787944779739|1|statement|connection 27|url jdbc:h2:mem:testdb1|drop table if exists test1 cascade |drop table if exists test1 cascade 
+1787954659195|1|statement|connection 27|url jdbc:h2:mem:testdb1|drop table if exists test1 cascade |drop table if exists test1 cascade 
+1787955448322|1|statement|connection 27|url jdbc:h2:mem:testdb1|drop table if exists test1 cascade |drop table if exists test1 cascade 
