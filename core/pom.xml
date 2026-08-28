@@ -105,7 +105,14 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Test -->
+			<!-- Project Reactor (Optional) - for reactive adapters -->
+			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-core</artifactId>
+				<optional>true</optional>
+			</dependency>
+
+			<!-- Test -->
 
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
