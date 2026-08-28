@@ -34,12 +34,24 @@ import com.holonplatform.datastore.jpa.JpaDatastore;
  * This executor wraps synchronous datastore operations and executes them on virtual threads via
  * {@link CompletableFuture}, enabling thousands of concurrent operations with minimal resource consumption.
  * </p>
+ * <p>
+ * Usage example with fluent builder pattern:
+ * <pre>
+ * VirtualThreadDatastoreExecutor executor = VirtualThreadDatastoreExecutor.builder()
+ *     .datastore(myDatastore)
+ *     .build();
+ *
+ * executor.executeAsync(ds -> ds.query(User.class).list())
+ *     .thenAccept(users -> System.out.println(users));
+ * </pre>
+ * </p>
  *
  * @since 10.0.0
  */
 public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 
 	private static final String EXECUTOR_NOT_NULL = "Executor cannot be null";
+	private static final String DATASTORE_NOT_NULL = "Datastore cannot be null";
 
 	/**
 	 * Default virtual thread executor factory (creates a new one per instance)
@@ -61,6 +73,14 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 * The wrapped datastore
 	 */
 	private final JpaDatastore datastore;
+
+	/**
+	 * Get a builder to create a {@link VirtualThreadDatastoreExecutor} instance.
+	 * @return Builder instance
+	 */
+	public static Builder builder() {
+		return new DefaultBuilder();
+	}
 
 	/**
 	 * Create a new async executor using the default virtual thread executor.
@@ -350,6 +370,75 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 */
 	public AsyncBuilder async() {
 		return new AsyncBuilder(this);
+	}
+
+	// ==================== Builder Interface ====================
+
+	/**
+	 * Builder for creating {@link VirtualThreadDatastoreExecutor} instances using fluent API.
+	 * <p>
+	 * Follows the Holon Platform fluent builder pattern for chainable configuration.
+	 * </p>
+	 */
+	public interface Builder {
+
+		/**
+		 * Set the {@link JpaDatastore} to wrap for async execution.
+		 *
+		 * @param datastore The datastore (not null)
+		 * @return this
+		 */
+		Builder datastore(JpaDatastore datastore);
+
+		/**
+		 * Set a custom {@link Executor} for async operations.
+		 * <p>
+		 * If not set, defaults to {@link Executors#newVirtualThreadPerTaskExecutor()}.
+		 * </p>
+		 *
+		 * @param executor The executor (not null)
+		 * @return this
+		 */
+		Builder executor(Executor executor);
+
+		/**
+		 * Build the {@link VirtualThreadDatastoreExecutor} instance.
+		 *
+		 * @return A new VirtualThreadDatastoreExecutor
+		 * @throws IllegalStateException if required configuration is missing
+		 */
+		VirtualThreadDatastoreExecutor build();
+	}
+
+	/**
+	 * Default {@link Builder} implementation.
+	 */
+	private static final class DefaultBuilder implements Builder {
+
+		private JpaDatastore datastore;
+		private Executor executor;
+
+		@Override
+		public Builder datastore(JpaDatastore datastore) {
+			Objects.requireNonNull(datastore, DATASTORE_NOT_NULL);
+			this.datastore = datastore;
+			return this;
+		}
+
+		@Override
+		public Builder executor(Executor executor) {
+			Objects.requireNonNull(executor, EXECUTOR_NOT_NULL);
+			this.executor = executor;
+			return this;
+		}
+
+		@Override
+		public VirtualThreadDatastoreExecutor build() {
+			Objects.requireNonNull(datastore, DATASTORE_NOT_NULL);
+			return new VirtualThreadDatastoreExecutor(datastore,
+					executor != null ? executor : DEFAULT_EXECUTOR,
+					executor != null); // Own executor if custom provided
+		}
 	}
 
 }
