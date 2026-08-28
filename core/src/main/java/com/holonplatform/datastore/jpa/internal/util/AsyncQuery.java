@@ -32,12 +32,14 @@ import com.holonplatform.core.query.Query;
  * Wraps Holon Platform's Query interface to provide CompletableFuture-based async methods.
  * Enables reactive composition without blocking platform threads.
  * 
- * Usage:
+ * <h2>Usage Example</h2>
  * <pre>
- * Query query = datastore.query(User.class);
- * AsyncQuery asyncQuery = new AsyncQuery(query);
+ * // Using fluent builder pattern (recommended)
+ * AsyncQuery asyncQuery = AsyncQuery.builder(query)
+ *     .executor(Executors.newVirtualThreadPerTaskExecutor())
+ *     .build();
  * 
- * asyncQuery.listAsync(Paths.PROPERTY_SET)
+ * asyncQuery.listAsync(PROPERTIES)
  *     .thenApply(results -> results.stream()
  *         .filter(box -> box.getValue(NAME).contains("John"))
  *         .collect(Collectors.toList()))
@@ -49,6 +51,11 @@ import com.holonplatform.core.query.Query;
  *         }
  *     });
  * </pre>
+ * 
+ * <h2>Legacy Usage (deprecated)</h2>
+ * <pre>
+ * AsyncQuery asyncQuery = new AsyncQuery(query);
+ * </pre>
  *
  * @since 12.0.0
  */
@@ -58,6 +65,7 @@ public final class AsyncQuery {
 		Executors.newVirtualThreadPerTaskExecutor();
 
 	private final Query query;
+	private final ExecutorService executor;
 
 	/**
 	 * Constructs AsyncQuery wrapping a Query.
@@ -65,13 +73,34 @@ public final class AsyncQuery {
 	 * @param query Query to wrap (not null)
 	 */
 	public AsyncQuery(Query query) {
+		this(query, VIRTUAL_THREAD_EXECUTOR);
+	}
+
+	/**
+	 * Constructs AsyncQuery with custom executor.
+	 *
+	 * @param query Query to wrap (not null)
+	 * @param executor Executor to use (not null)
+	 */
+	public AsyncQuery(Query query, ExecutorService executor) {
 		this.query = Objects.requireNonNull(query, "Query must not be null");
+		this.executor = Objects.requireNonNull(executor, "Executor must not be null");
+	}
+
+	/**
+	 * Start building an AsyncQuery with fluent builder pattern.
+	 *
+	 * @param query the Holon Query to wrap
+	 * @return new builder instance
+	 */
+	public static AsyncQueryBuilder builder(Query query) {
+		return AsyncQueryBuilder.builder(query);
 	}
 
 	/**
 	 * Execute query and return list of results asynchronously using property iterable.
 	 * 
-	 * Runs on a virtual thread executor, making it suitable for I/O-bound operations.
+	 * Runs on the configured executor, making it suitable for I/O-bound operations.
 	 * Results are materialized into a List (eager evaluation).
 	 *
 	 * @param properties Property iterable to retrieve (PropertySet or Collection)
@@ -82,7 +111,7 @@ public final class AsyncQuery {
 		Objects.requireNonNull(properties, "Properties must not be null");
 		return CompletableFuture.supplyAsync(
 			() -> query.list((Iterable<com.holonplatform.core.property.Property<?>>) properties),
-			VIRTUAL_THREAD_EXECUTOR
+			executor
 		);
 	}
 
@@ -99,15 +128,15 @@ public final class AsyncQuery {
 		Objects.requireNonNull(properties, "Properties must not be null");
 		return CompletableFuture.supplyAsync(
 			() -> query.findOne((Iterable<com.holonplatform.core.property.Property<?>>) properties),
-			VIRTUAL_THREAD_EXECUTOR
+			executor
 		);
 	}
 
 	/**
 	 * Execute query and return stream of results asynchronously using property iterable.
 	 * 
-	 * Runs on a virtual thread executor. The stream is evaluated lazily but still
-	 * runs within the virtual thread context. Terminal operations will trigger
+	 * Runs on the configured executor. The stream is evaluated lazily but still
+	 * runs within the executor context. Terminal operations will trigger
 	 * entity reading within the async context.
 	 *
 	 * @param properties Property iterable to retrieve (PropertySet or Collection)
@@ -118,7 +147,7 @@ public final class AsyncQuery {
 		Objects.requireNonNull(properties, "Properties must not be null");
 		return CompletableFuture.supplyAsync(
 			() -> query.stream((Iterable<com.holonplatform.core.property.Property<?>>) properties),
-			VIRTUAL_THREAD_EXECUTOR
+			executor
 		);
 	}
 
@@ -132,7 +161,7 @@ public final class AsyncQuery {
 	public CompletableFuture<Long> countAsync() {
 		return CompletableFuture.supplyAsync(
 			query::count,
-			VIRTUAL_THREAD_EXECUTOR
+			executor
 		);
 	}
 

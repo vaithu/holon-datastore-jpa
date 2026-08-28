@@ -34,6 +34,12 @@ See [Getting started](#getting-started) and the [platform documentation](https:/
 - [🚀 Async Query Execution (New in v12.0.0)](#-async-query-execution-new-in-v1200)
   - [Non-Blocking Queries with Virtual Threads](#non-blocking-queries-with-virtual-threads)
   - [CompletableFuture Integration](#completablefuture-integration)
+- [🏗️ Fluent Builder Pattern (Holon Platform Standard)](#%EF%B8%8F-fluent-builder-pattern-holon-platform-standard)
+  - [AsyncQuery Builder](#asyncquery-builder)
+  - [Reactive Adapters Builder](#reactive-adapters-builder)
+  - [Query Result Cache Builder](#query-result-cache-builder)
+  - [Parallel Batch Executor Builder](#parallel-batch-executor-builder)
+  - [Filter Builder](#filter-builder)
 - [⚛️ Reactive Adapters (New in v12.0.0)](#%EF%B8%8F-reactive-adapters-new-in-v1200)
   - [Project Reactor Mono & Flux Support](#project-reactor-mono--flux-support)
   - [Back-Pressure Support](#back-pressure-support)
@@ -137,6 +143,156 @@ CompletableFuture<Long> futureCount =
     asyncQuery.countAsync();
 
 // Compose multiple async operations
+## 🏗️ Fluent Builder Pattern (Holon Platform Standard)
+
+All v12.0.0 features follow the Holon Platform fluent builder pattern for consistent, self-documenting APIs.
+
+### AsyncQuery Builder
+
+```java
+import com.holonplatform.datastore.jpa.internal.util.AsyncQuery;
+import java.util.concurrent.Executors;
+
+Query query = datastore.query(User.class)
+    .filter(ACTIVE.eq(true));
+
+// Fluent builder with custom executor
+AsyncQuery asyncQuery = AsyncQuery.builder(query)
+    .executor(Executors.newVirtualThreadPerTaskExecutor())
+    .build();
+
+// Use async methods
+asyncQuery.listAsync(PROPERTIES)
+    .thenApply(results -> results.stream()
+        .filter(box -> box.getValue(SALARY).longValue() > 50000)
+        .collect(Collectors.toList()))
+    .exceptionally(ex -> {
+        logger.error("Query failed", ex);
+        return Collections.emptyList();
+    })
+    .thenAccept(highEarners -> 
+        logger.info("Found {} high earners", highEarners.size())
+    );
+
+// Legacy constructor still supported for backward compatibility
+AsyncQuery legacyAsync = new AsyncQuery(query);
+```
+
+### Reactive Adapters Builder
+
+```java
+import com.holonplatform.datastore.jpa.internal.reactive.JpaMono;
+import com.holonplatform.datastore.jpa.internal.reactive.JpaFlux;
+import reactor.core.scheduler.Schedulers;
+
+Query query = datastore.query(Order.class)
+    .filter(STATUS.eq("PENDING"));
+
+// JpaMono builder with custom scheduler
+Mono<?> mono = JpaMono.builder(query, PROPERTIES)
+    .scheduler(Schedulers.parallel())
+    .build();
+
+mono.map(box -> box.getValue(ORDER_ID))
+    .doOnNext(id -> logger.info("Processing order: {}", id))
+    .subscribe();
+
+// JpaFlux builder with custom scheduler
+Flux<?> flux = JpaFlux.builder(query, PROPERTIES)
+    .scheduler(Schedulers.boundedElastic())
+    .build();
+
+flux.buffer(1000)  // Back-pressure: emit 1000 at a time
+    .flatMap(this::processBatch)
+    .doOnError(ex -> logger.error("Batch processing failed", ex))
+    .subscribe();
+
+// Legacy static factories still supported
+Mono<?> legacyMono = JpaMono.from(query, PROPERTIES);
+Flux<?> legacyFlux = JpaFlux.from(query, PROPERTIES);
+```
+
+### Query Result Cache Builder
+
+```java
+import com.holonplatform.datastore.jpa.internal.cache.QueryResultCache;
+import com.holonplatform.datastore.jpa.internal.cache.QueryCacheBuilder;
+
+// Configure cache with time unit convenience methods
+QueryResultCache cache = QueryCacheBuilder.builder()
+    .maxSize(5000)                  // 5K entries max
+    .ttlMinutes(10)                 // 10 minute TTL
+    .build();
+
+// Alternative: using other time units
+QueryResultCache fastCache = QueryCacheBuilder.builder()
+    .maxSize(1000)
+    .ttlSeconds(30)  // 30 second TTL for frequently changing data
+    .build();
+
+// Use with computed values
+cache.getOrCompute("dashboard:summary", key -> {
+    return computeExpensiveQuery();
+});
+```
+
+### Parallel Batch Executor Builder
+
+```java
+import com.holonplatform.datastore.jpa.async.ParallelBatchExecutor;
+
+List<User> millionUsers = fetchMillionUsersFromAPI();
+
+// Configure for maximum throughput
+ParallelBatchExecutor<User> executor = ParallelBatchExecutor.builder()
+    .degreeOfParallelism(16)    // 16 parallel tasks
+    .partitionSize(10000)        // 10K items per partition
+    .executor(Executors.newVirtualThreadPerTaskExecutor())
+    .build();
+
+// Execute with automatic partitioning
+ParallelBatchResult result = executor.execute(millionUsers, user ->
+    datastore.insert(user).execute()
+);
+
+logger.info("Inserted {} in {}ms ({} items/sec)",
+    result.getSuccessfulRows(),
+    result.getExecutionTimeMs(),
+    String.format("%.0f", 
+        result.getSuccessfulRows() * 1000.0 / result.getExecutionTimeMs())
+);
+
+executor.shutdown();
+```
+
+### Filter Builder
+
+```java
+import com.holonplatform.datastore.jpa.internal.patterns.FilterBuilder;
+
+// Type-safe dynamic filtering for REST APIs
+Query baseQuery = datastore.query(Product.class);
+
+FilterBuilder filters = FilterBuilder.start()
+    .eq("tenantId", currentTenant)
+    .gte("price", minPrice)
+    .lte("price", maxPrice);
+
+if (category != null) {
+    filters.eq("category", category);
+}
+
+if (inStock) {
+    filters.gt("quantity", 0);
+}
+
+// Build query with filters
+Query query = baseQuery.filter(filters.build());
+List<PropertyBox> results = query.list(PROPERTIES);
+```
+
+---
+
 CompletableFuture<Long> combined = 
     asyncQuery.countAsync()
         .thenCombine(
