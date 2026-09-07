@@ -39,7 +39,7 @@ public final class EntityTargetCache implements Serializable {
 	/**
 	 * Data target name - entity class mappings cache
 	 */
-	private final static WeakHashMap<EntityManagerFactory, Map<String, Class<?>>> ENTITY_TARGETS = new WeakHashMap<>();
+	private static final WeakHashMap<EntityManagerFactory, Map<String, Class<?>>> ENTITY_TARGETS = new WeakHashMap<>();
 
 	private EntityTargetCache() {
 	}
@@ -50,7 +50,7 @@ public final class EntityTargetCache implements Serializable {
 	 * @param name Path name (not null)
 	 * @return Entity class, or <code>null</code> target was null
 	 */
-	public synchronized static Optional<Class<?>> resolveEntityClass(EntityManagerFactory entityManagerFactory,
+	public static synchronized Optional<Class<?>> resolveEntityClass(EntityManagerFactory entityManagerFactory,
 			String name) {
 
 		ObjectUtils.argumentNotNull(name, "Name must be not null");
