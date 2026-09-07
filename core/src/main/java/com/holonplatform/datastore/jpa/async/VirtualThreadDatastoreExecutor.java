@@ -2,7 +2,7 @@
  * Copyright 2016-2025 Holon Platform contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+		Objects.requireNonNull(operation, OPERATION_NOT_NULL);
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -52,6 +52,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 
 	private static final String EXECUTOR_NOT_NULL = "Executor cannot be null";
 	private static final String DATASTORE_NOT_NULL = "Datastore cannot be null";
+	private static final String OPERATION_NOT_NULL = "Operation cannot be null";
 
 	/**
 	 * Default virtual thread executor factory (creates a new one per instance)
@@ -110,7 +111,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 */
 	public VirtualThreadDatastoreExecutor(JpaDatastore datastore, Executor executor,
 			boolean ownsExecutor) {
-		this.datastore = Objects.requireNonNull(datastore, "Datastore cannot be null");
+		this.datastore = Objects.requireNonNull(datastore, DATASTORE_NOT_NULL);
 		this.executor = Objects.requireNonNull(executor, EXECUTOR_NOT_NULL);
 		this.ownsExecutor = ownsExecutor;
 	}
@@ -145,7 +146,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 * @return A {@link CompletableFuture} that will complete with the operation result
 	 */
 	public <R> CompletableFuture<R> executeAsync(QueryOperation<R> operation) {
-		Objects.requireNonNull(operation, "Operation cannot be null");
+		Objects.requireNonNull(operation, OPERATION_NOT_NULL);
 		return CompletableFuture.supplyAsync(() -> operation.execute(datastore), executor);
 	}
 
@@ -162,7 +163,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 * @return A {@link CompletableFuture} that will complete with a list of results
 	 */
 	public <R> CompletableFuture<List<R>> executeAsyncList(QueryStreamOperation<R> operation) {
-		Objects.requireNonNull(operation, "Operation cannot be null");
+		Objects.requireNonNull(operation, OPERATION_NOT_NULL);
 		return CompletableFuture.supplyAsync(() -> {
 			try (Stream<R> stream = operation.executeStream(datastore)) {
 				return stream.toList();
@@ -184,7 +185,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 */
 	public <R> CompletableFuture<Stream<R>> executeAsyncStream(
 			QueryStreamOperation<R> operation) {
-		Objects.requireNonNull(operation, "Operation cannot be null");
+		Objects.requireNonNull(operation, OPERATION_NOT_NULL);
 		return CompletableFuture.supplyAsync(() -> operation.executeStream(datastore), executor);
 	}
 
@@ -195,7 +196,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 * @return A {@link CompletableFuture} that will complete when the operation finishes
 	 */
 	public CompletableFuture<Void> executeAsyncVoid(DatastoreOperation operation) {
-		Objects.requireNonNull(operation, "Operation cannot be null");
+		Objects.requireNonNull(operation, OPERATION_NOT_NULL);
 		return CompletableFuture.runAsync(() -> operation.execute(datastore), executor);
 	}
 
@@ -226,6 +227,7 @@ public final class VirtualThreadDatastoreExecutor implements AutoCloseable {
 	 * @param operations The operations to execute in parallel (not null)
 	 * @return A {@link CompletableFuture} that completes with the first result
 	 */
+	@SuppressWarnings("unchecked")
 	@SafeVarargs
 	public final <R> CompletableFuture<R> executeAsyncAny(
 			CompletableFuture<R>... operations) {

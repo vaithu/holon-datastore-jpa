@@ -32,6 +32,84 @@
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<configuration combine.self="override">
+					<sourceDirectory>src/docs/asciidoc/reference</sourceDirectory>
+					<attributes>
+						<source-highlighter>coderay</source-highlighter>
+						<endpoint-url>https://holon-platform.com</endpoint-url>
+						<sourcedir>${project.basedir}/src/main/java</sourcedir>
+						<project-version>${project.version}</project-version>
+						<examplesdir>${project.basedir}/src/main/java</examplesdir>
+						<icons>font</icons>
+						<idprefix></idprefix>
+						<idseparator>-</idseparator>
+						<docinfo1>true</docinfo1>
+						<docinfodir>${project.build.directory}/maven-shared-archive-resources/documentation</docinfodir>
+						<last-update-label>false</last-update-label>
+						<theme>flask</theme>
+						<tabsize>2</tabsize>
+					</attributes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>asciidoc-to-html</id>
+						<phase>package</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration combine.self="override">
+							<backend>html5</backend>
+							<sourceDirectory>src/docs/asciidoc/reference</sourceDirectory>
+							<attributes>
+								<source-highlighter>coderay</source-highlighter>
+								<sectanchors>true</sectanchors>
+								<linkcss>true</linkcss>
+								<endpoint-url>https://holon-platform.com</endpoint-url>
+								<sourcedir>${project.basedir}/src/main/java</sourcedir>
+								<project-version>${project.version}</project-version>
+								<examplesdir>${project.basedir}/src/main/java</examplesdir>
+								<icons>font</icons>
+								<idprefix></idprefix>
+								<idseparator>-</idseparator>
+								<docinfo1>true</docinfo1>
+								<docinfodir>${project.build.directory}/maven-shared-archive-resources/documentation</docinfodir>
+								<last-update-label>false</last-update-label>
+								<theme>flask</theme>
+								<tabsize>2</tabsize>
+							</attributes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>asciidoc-to-pdf</id>
+						<phase>package</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration combine.self="override">
+							<backend>pdf</backend>
+							<sourceDirectory>src/docs/asciidoc/reference</sourceDirectory>
+							<attributes>
+								<source-highlighter>coderay</source-highlighter>
+								<pagenums></pagenums>
+								<toc></toc>
+								<pdf-stylesdir>${project.build.directory}/maven-shared-archive-resources/documentation/theme</pdf-stylesdir>
+								<pdf-style>holon</pdf-style>
+								<endpoint-url>https://holon-platform.com</endpoint-url>
+								<sourcedir>${project.basedir}/src/main/java</sourcedir>
+								<project-version>${project.version}</project-version>
+								<examplesdir>${project.basedir}/src/main/java</examplesdir>
+								<icons>font</icons>
+								<idprefix></idprefix>
+								<idseparator>-</idseparator>
+								<docinfo1>true</docinfo1>
+								<docinfodir>${project.build.directory}/maven-shared-archive-resources/documentation</docinfodir>
+								<last-update-label>false</last-update-label>
+								<theme>flask</theme>
+								<tabsize>2</tabsize>
+							</attributes>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<!-- Assembly docs -->
 			<plugin>
