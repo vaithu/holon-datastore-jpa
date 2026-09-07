@@ -109,7 +109,10 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 	/**
 	 * Logger
 	 */
-	protected final static Logger LOGGER = JpaDatastoreLogger.create();
+	protected static final Logger LOGGER = JpaDatastoreLogger.create();
+
+	private static final String FAILED_TO_EXECUTE_OPERATION = "Failed to execute operation";
+	private static final String JPA_TRANSACTION_LOG_PREFIX = "JPA transaction [";
 
 	/**
 	 * Current operation EntityManager — bound per-scope to support virtual threads.
@@ -234,28 +237,28 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		// platform
 		if (getORMPlatform().isEmpty()) {
 			// try to detect
-			detectORMPlatform().ifPresent(platform -> setORMPlatform(platform));
+			detectORMPlatform().ifPresent(ormPlatform -> setORMPlatform(ormPlatform));
 		}
 
 		// dialect
 		if (getDialect() == null) {
-			setDialect(getORMPlatform().flatMap(platform -> ORMDialect.detect(platform)).orElse(new DefaultDialect()));
+			setDialect(getORMPlatform().flatMap(ormPlatform -> ORMDialect.detect(ormPlatform)).orElse(new DefaultDialect()));
 		}
 
 		// init dialect
-		final ORMDialect dialect = getDialect();
+		final ORMDialect ormDialect = getDialect();
 		try {
-			dialect.init(new JpaDatastoreDialectContext());
+			ormDialect.init(new JpaDatastoreDialectContext());
 		} catch (Exception e) {
-			throw new IllegalStateException("Failed to initialize dialect [" + dialect.getClass().getName() + "]", e);
+			throw new IllegalStateException("Failed to initialize dialect [" + ormDialect.getClass().getName() + "]", e);
 		}
 
 		// default factories and resolvers
 		loadExpressionResolvers(classLoader);
 		loadCommodityFactories(classLoader);
 
-		LOGGER.info("JpaDatastore initialized - Using dialect [" + dialect.getClass().getName() + "]");
-		getORMPlatform().ifPresent(platform -> LOGGER.info("JpaDatastore ORM platform: " + platform));
+		LOGGER.info("JpaDatastore initialized - Using dialect [" + ormDialect.getClass().getName() + "]");
+		getORMPlatform().ifPresent(ormPlatform -> LOGGER.info("JpaDatastore ORM platform: " + ormPlatform));
 
 		return true;
 	}
@@ -383,10 +386,8 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 	 */
 	protected Optional<ORMPlatform> detectORMPlatform() {
 		try {
-			final ORMPlatform platform = withEntityManager(em -> {
-				return ORMPlatform.resolve(em);
-			});
-			return Optional.ofNullable(platform);
+			final ORMPlatform ormPlatform = withEntityManager((EntityManagerOperation<ORMPlatform>) em -> ORMPlatform.resolve(em));
+			return Optional.ofNullable(ormPlatform);
 		} catch (Exception e) {
 			LOGGER.warn("Failed to detected ORM platform");
 			LOGGER.debug(() -> "Failed to detected ORM platform", e);
@@ -479,7 +480,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			} catch (DataAccessException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new DataAccessException("Failed to execute operation", e);
+				throw new DataAccessException(FAILED_TO_EXECUTE_OPERATION, e);
 			}
 		}
 
@@ -491,7 +492,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			} catch (DataAccessException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new DataAccessException("Failed to execute operation", e);
+				throw new DataAccessException(FAILED_TO_EXECUTE_OPERATION, e);
 			}
 		}
 
@@ -502,7 +503,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		} catch (DataAccessException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new DataAccessException("Failed to execute operation", e);
+			throw new DataAccessException(FAILED_TO_EXECUTE_OPERATION, e);
 		} finally {
 			finalizeEntityManager(entityManager);
 		}
@@ -519,49 +520,66 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 		checkInitialized();
 		ObjectUtils.argumentNotNull(operation, "TransactionalOperation must be not null");
 
-		// nested call: delegate to the already-active transaction
 		if (CURRENT_TRANSACTION.isBound()) {
-			final JpaTransaction tx = JpaTransaction.delegate(CURRENT_TRANSACTION.get());
-			try {
-				return operation.execute(tx);
-			} catch (Exception e) {
-				if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
-					tx.setRollbackOnly();
-				}
-				throw e;
-			} finally {
-				try {
-					endTransaction(tx);
-				} catch (Exception e) {
-					throw new TransactionException("Failed to finalize transaction", e);
-				}
-			}
+			return withCurrentTransaction(operation);
 		}
 
-		// start a new transaction and bind it in scope
+		return withNewTransaction(operation, transactionConfiguration);
+	}
+
+	private <R> R withCurrentTransaction(TransactionalOperation<R> operation) {
+		final JpaTransaction tx = JpaTransaction.delegate(CURRENT_TRANSACTION.get());
+		return executeTransaction(tx, () -> operation.execute(tx));
+	}
+
+	private <R> R withNewTransaction(TransactionalOperation<R> operation,
+			TransactionConfiguration transactionConfiguration) {
 		final JpaTransaction tx = startTransaction(transactionConfiguration);
+		return executeTransaction(tx, () -> callInTransactionScope(operation, tx));
+	}
+
+	private <R> R executeTransaction(JpaTransaction tx, TransactionCallback<R> callback) {
+		R result;
 		try {
-			return ScopedValue.where(CURRENT_TRANSACTION, tx).call(() -> {
-				try {
-					return operation.execute(tx);
-				} catch (Exception e) {
-					if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
-						tx.setRollbackOnly();
-					}
-					throw e;
-				}
-			});
+			result = callback.execute();
+		} catch (RuntimeException e) {
+			markRollbackOnly(tx);
+			endTransactionAfterFailure(tx, e);
+			throw e;
+		}
+		endTransaction(tx);
+		return result;
+	}
+
+	private <R> R callInTransactionScope(TransactionalOperation<R> operation, JpaTransaction tx) {
+		try {
+			return ScopedValue.where(CURRENT_TRANSACTION, tx).call(() -> operation.execute(tx));
 		} catch (TransactionException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new TransactionException("Transaction operation failed", e);
-		} finally {
-			try {
-				endTransaction(tx);
-			} catch (Exception e) {
-				throw new TransactionException("Failed to finalize transaction", e);
-			}
 		}
+	}
+
+	private void markRollbackOnly(JpaTransaction tx) {
+		if (tx.getConfiguration().isRollbackOnError() && !tx.isCompleted()) {
+			tx.setRollbackOnly();
+		}
+	}
+
+	private void endTransactionAfterFailure(JpaTransaction tx, RuntimeException operationFailure) {
+		try {
+			endTransaction(tx);
+		} catch (RuntimeException finalizationFailure) {
+			operationFailure.addSuppressed(finalizationFailure);
+		}
+	}
+
+	@FunctionalInterface
+	private interface TransactionCallback<R> {
+
+		R execute();
+
 	}
 
 	/**
@@ -640,7 +658,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			throw e;
 		}
 
-		LOGGER.debug(() -> "JPA transaction [" + tx + "] created");
+		LOGGER.debug(() -> JPA_TRANSACTION_LOG_PREFIX + tx + "] created");
 
 		// return the transaction
 		return tx;
@@ -657,7 +675,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 
 		// check new
 		if (!tx.isNew()) {
-			LOGGER.debug(() -> "JPA transaction [" + tx + "] was not finalized because it is not new");
+			LOGGER.debug(() -> JPA_TRANSACTION_LOG_PREFIX + tx + "] was not finalized because it is not new");
 			return false;
 		}
 
@@ -665,16 +683,22 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 			if (tx.isActive()) {
 				tx.end();
 			}
-		} finally {
-			// finalize entity manager
+		} catch (TransactionException e) {
 			try {
 				finalizeEntityManager(tx.getEntityManager());
-			} catch (Exception e) {
-				throw new TransactionException("Failed to finalize the transaction EntityManager", e);
+			} catch (Exception finalizationFailure) {
+				e.addSuppressed(finalizationFailure);
 			}
+			throw e;
 		}
 
-		LOGGER.debug(() -> "JPA transaction [" + tx + "] finalized");
+		try {
+			finalizeEntityManager(tx.getEntityManager());
+		} catch (Exception e) {
+			throw new TransactionException("Failed to finalize the transaction EntityManager", e);
+		}
+
+		LOGGER.debug(() -> JPA_TRANSACTION_LOG_PREFIX + tx + "] finalized");
 
 		return true;
 	}
@@ -756,7 +780,7 @@ public class DefaultJpaDatastore extends AbstractInitializableDatastore<JpaDatas
 
 		protected final I datastore;
 
-		public AbstractBuilder(I datastore) {
+		protected AbstractBuilder(I datastore) {
 			super();
 			this.datastore = datastore;
 		}

@@ -79,7 +79,7 @@ public enum DefaultJPQLValueSerializer implements JPQLValueSerializer {
 
 		// boolean
 		if (TypeUtils.isBoolean(value.getClass())) {
-			return (Boolean) value ? "TRUE" : "FALSE";
+			return ((Boolean) value).booleanValue() ? "TRUE" : "FALSE";
 		}
 
 		// enums
@@ -125,68 +125,81 @@ public enum DefaultJPQLValueSerializer implements JPQLValueSerializer {
 	private static Optional<String> serializeTemporal(Object value, TemporalType temporalType) {
 
 		if (TypeUtils.isDate(value.getClass()) || TypeUtils.isCalendar(value.getClass())) {
-			final Date date = TypeUtils.isCalendar(value.getClass()) ? ((Calendar) value).getTime() : (Date) value;
-			TemporalType tt = (temporalType != null) ? temporalType : TemporalType.DATE;
-
-			LocalDate datePart = null;
-			LocalTime timePart = null;
-
-			switch (tt) {
-			case DATE_TIME:
-				datePart = ConversionUtils.toLocalDate(date);
-				timePart = ConversionUtils.toLocalTime(date);
-				break;
-			case TIME:
-				timePart = ConversionUtils.toLocalTime(date);
-				break;
-			case DATE:
-			default:
-				datePart = ConversionUtils.toLocalDate(date);
-				break;
-			}
-
-			return Optional.of(serializeDateTimeValue(datePart, timePart));
+			return Optional.of(serializeDateValue(value, temporalType));
 		}
 
 		if (TemporalAccessor.class.isAssignableFrom(value.getClass())) {
-
-			LocalDate datePart = null;
-			LocalTime timePart = null;
-
-			if (value instanceof LocalDate date) {
-				datePart = date;
-			} else if (value instanceof LocalTime time) {
-				timePart = time;
-			} else if (value instanceof LocalDateTime time) {
-				datePart = time.toLocalDate();
-				timePart = time.toLocalTime();
-			} else if (value instanceof OffsetTime time) {
-				timePart = time.toLocalTime();
-			} else if (value instanceof OffsetDateTime time) {
-				datePart = time.toLocalDate();
-				timePart = time.toLocalTime();
-			} else if (value instanceof ZonedDateTime time) {
-				datePart = time.toLocalDate();
-				timePart = time.toLocalTime();
-			}
-
-			if (datePart != null || timePart != null) {
-				LocalDate serializeDate = datePart;
-				LocalTime serializeTime = timePart;
-
-				if (temporalType != null) {
-					if (temporalType == TemporalType.DATE) {
-						serializeTime = null;
-					} else if (temporalType == TemporalType.TIME) {
-						serializeDate = null;
-					}
-				}
-
-				return Optional.of(serializeDateTimeValue(serializeDate, serializeTime));
-			}
+			return serializeTemporalAccessor(value, temporalType);
 		}
 
 		return Optional.empty();
+	}
+
+	private static String serializeDateValue(Object value, TemporalType temporalType) {
+		final Date date = TypeUtils.isCalendar(value.getClass()) ? ((Calendar) value).getTime() : (Date) value;
+		TemporalType tt = (temporalType != null) ? temporalType : TemporalType.DATE;
+
+		switch (tt) {
+		case DATE_TIME:
+			return serializeDateTimeValue(ConversionUtils.toLocalDate(date), ConversionUtils.toLocalTime(date));
+		case TIME:
+			return serializeDateTimeValue(null, ConversionUtils.toLocalTime(date));
+		case DATE:
+		default:
+			return serializeDateTimeValue(ConversionUtils.toLocalDate(date), null);
+		}
+	}
+
+	private static Optional<String> serializeTemporalAccessor(Object value, TemporalType temporalType) {
+		LocalDate datePart = getDatePart(value);
+		LocalTime timePart = getTimePart(value);
+
+		if (datePart == null && timePart == null) {
+			return Optional.empty();
+		}
+
+		if (temporalType == TemporalType.DATE) {
+			timePart = null;
+		} else if (temporalType == TemporalType.TIME) {
+			datePart = null;
+		}
+
+		return Optional.of(serializeDateTimeValue(datePart, timePart));
+	}
+
+	private static LocalDate getDatePart(Object value) {
+		if (value instanceof LocalDate date) {
+			return date;
+		}
+		if (value instanceof LocalDateTime dateTime) {
+			return dateTime.toLocalDate();
+		}
+		if (value instanceof OffsetDateTime dateTime) {
+			return dateTime.toLocalDate();
+		}
+		if (value instanceof ZonedDateTime dateTime) {
+			return dateTime.toLocalDate();
+		}
+		return null;
+	}
+
+	private static LocalTime getTimePart(Object value) {
+		if (value instanceof LocalTime time) {
+			return time;
+		}
+		if (value instanceof LocalDateTime dateTime) {
+			return dateTime.toLocalTime();
+		}
+		if (value instanceof OffsetTime time) {
+			return time.toLocalTime();
+		}
+		if (value instanceof OffsetDateTime dateTime) {
+			return dateTime.toLocalTime();
+		}
+		if (value instanceof ZonedDateTime dateTime) {
+			return dateTime.toLocalTime();
+		}
+		return null;
 	}
 
 	/**

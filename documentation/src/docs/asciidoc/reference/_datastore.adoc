@@ -16,7 +16,7 @@ The link:{apidir}/com/holonplatform/datastore/jpa/JpaDatastore.html[JpaDatastore
 The `JpaDatastore` API, besides the standard `Datastore` API operations, provides methods to:
 
 * Create and configure a `JpaDatastore` API instance, using the provided _builder_.
-* Directly working with `JpaDatastore` managed _EntityManagers_, with a consistent and integrated `EntityManager` instance and related _persistence context_ lifecycle management. See <<JpaDatastoreAPI,JpaDatastore API>>.
+* Directly working with `JpaDatastore` managed _EntityManagers_, with a consistent and integrated `EntityManager` instance and related _persistence context_ lifecycle management. See <<JPADatastoreAPI,JpaDatastore API>>.
 
 IMPORTANT: If you want to reach the goal of a *_complete abstraction_* from the persistence store technology and the persistence model, the core `Datastore` API interface should be used instead of the specific `JpaDatastore` API by your application code. This way, the concrete `Datastore` API implementation may be replaced by a different one at any time, without any change to the codebase.
 

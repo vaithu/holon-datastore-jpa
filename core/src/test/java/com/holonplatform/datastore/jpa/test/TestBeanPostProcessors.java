@@ -28,6 +28,8 @@ import com.holonplatform.datastore.jpa.test.model.entity.Test3;
 
 class TestBeanPostProcessors {
 
+	private static final String ENUM_VALUE_PROPERTY = "enumValue";
+
 	@Test
 	void testBeanPropertyPostProcessors() {
 
@@ -37,9 +39,10 @@ class TestBeanPostProcessors {
 		assertEquals(TemporalType.DATE,
 				set.getProperty("dateValue").get().getConfiguration().getTemporalType().orElse(null));
 
-		assertTrue(set.getProperty("enumValue").isPresent());
-		assertTrue(set.getProperty("enumValue").get().getConverter().isPresent());
-		assertEquals(EnumByOrdinalConverter.class, set.getProperty("enumValue").get().getConverter().get().getClass());
+		assertTrue(set.getProperty(ENUM_VALUE_PROPERTY).isPresent());
+		assertTrue(set.getProperty(ENUM_VALUE_PROPERTY).get().getConverter().isPresent());
+		assertEquals(EnumByOrdinalConverter.class,
+				set.getProperty(ENUM_VALUE_PROPERTY).get().getConverter().get().getClass());
 
 		// identifier
 

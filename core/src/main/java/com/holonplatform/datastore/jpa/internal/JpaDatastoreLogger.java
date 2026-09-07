@@ -25,7 +25,7 @@ import com.holonplatform.datastore.jpa.JpaDatastore;
  */
 public interface JpaDatastoreLogger {
 
-	final static String NAME = JpaDatastore.class.getPackage().getName();
+	static final String NAME = JpaDatastore.class.getPackage().getName();
 
 	/**
 	 * Get a {@link Logger} bound to {@link #NAME}.

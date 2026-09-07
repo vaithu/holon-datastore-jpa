@@ -64,6 +64,7 @@ public class DefaultJPQLLiteral<T> implements JPQLLiteral<T> {
 	 */
 	@Override
 	public void validate() throws InvalidExpressionException {
+		// Literal values are always valid JPQL expression operands.
 	}
 
 	/*
