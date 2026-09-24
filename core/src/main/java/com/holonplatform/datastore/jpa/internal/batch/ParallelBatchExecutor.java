@@ -49,6 +49,7 @@ import java.util.logging.Logger;
  * 
  * @since 12.0.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives on free type variable T
 public final class ParallelBatchExecutor<T> {
 
 	private static final Logger LOGGER = Logger.getLogger(ParallelBatchExecutor.class.getName());
@@ -93,7 +94,7 @@ public final class ParallelBatchExecutor<T> {
 	/**
 	 * Internal constructor used by builder.
 	 */
-	private ParallelBatchExecutor(int degreeOfParallelism, int partitionSize, boolean internal) {
+	private ParallelBatchExecutor(int degreeOfParallelism, int partitionSize) {
 		if (degreeOfParallelism < 1) {
 			throw new IllegalArgumentException("degreeOfParallelism must be >= 1");
 		}
@@ -227,7 +228,7 @@ public final class ParallelBatchExecutor<T> {
 						e.getMessage(),
 						e
 				));
-				LOGGER.log(Level.WARNING, "Error processing batch item at index " + globalRowIndex, e);
+				LOGGER.log(Level.WARNING, e, () -> "Error processing batch item at index " + globalRowIndex);
 			}
 		}
 	}
@@ -276,7 +277,7 @@ public final class ParallelBatchExecutor<T> {
 
 		@Override
 		public <T> ParallelBatchExecutor<T> build() {
-			return new ParallelBatchExecutor<>(degreeOfParallelism, partitionSize, true);
+			return new ParallelBatchExecutor<>(degreeOfParallelism, partitionSize);
 		}
 	}
 }

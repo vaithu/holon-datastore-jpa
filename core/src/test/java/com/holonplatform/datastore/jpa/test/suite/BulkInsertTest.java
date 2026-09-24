@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 
+// NumericProperty constants passed to PropertyBox.getValue(Property<@Nullable T>) trigger JDT unchecked null-conversion warnings
+@SuppressWarnings("null")
 class BulkInsertTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

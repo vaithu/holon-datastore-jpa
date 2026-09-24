@@ -28,15 +28,16 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @since 12.0.0
  */
-public class TestAsyncQuery {
+@SuppressWarnings("null") // JDT strict-null false positives on boxed Long against primitive method descriptors
+class TestAsyncQuery {
 
     @Test
-    public void testAsyncQueryNotNull() {
+    void testAsyncQueryNotNull() {
         assertThrows(NullPointerException.class, () -> new AsyncQuery(null));
     }
 
     @Test
-    public void testAsyncQueryWithValidQuery() {
+    void testAsyncQueryWithValidQuery() {
         com.holonplatform.core.query.Query mockQuery = createMockQuery();
         AsyncQuery asyncQuery = new AsyncQuery(mockQuery);
         
@@ -45,7 +46,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testCountAsync() throws Exception {
+    void testCountAsync() throws Exception {
         com.holonplatform.core.query.Query mockQuery = createMockQuery(() -> 10L);
         AsyncQuery asyncQuery = new AsyncQuery(mockQuery);
         
@@ -56,7 +57,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testAsyncNonBlocking() throws Exception {
+    void testAsyncNonBlocking() throws Exception {
         com.holonplatform.core.query.Query mockQuery = createMockQuery(() -> 10L);
         AsyncQuery asyncQuery = new AsyncQuery(mockQuery);
         
@@ -73,7 +74,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testAsyncExceptionHandling() throws Exception {
+    void testAsyncExceptionHandling() throws Exception {
         com.holonplatform.core.query.Query mockQuery = createMockQueryWithException(
             () -> { throw new RuntimeException("Test error"); }
         );
@@ -85,7 +86,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testAsyncChaining() throws Exception {
+    void testAsyncChaining() throws Exception {
         com.holonplatform.core.query.Query mockQuery = createMockQuery(() -> 10L);
         AsyncQuery asyncQuery = new AsyncQuery(mockQuery);
         
@@ -97,7 +98,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testAsyncFallback() throws Exception {
+    void testAsyncFallback() throws Exception {
         com.holonplatform.core.query.Query mockQuery = createMockQueryWithException(
             () -> { throw new RuntimeException("DB error"); }
         );
@@ -111,7 +112,7 @@ public class TestAsyncQuery {
     }
 
     @Test
-    public void testAsyncComposition() throws Exception {
+    void testAsyncComposition() throws Exception {
         com.holonplatform.core.query.Query mockQuery1 = createMockQuery(() -> 10L);
         com.holonplatform.core.query.Query mockQuery2 = createMockQuery(() -> 5L);
         

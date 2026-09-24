@@ -25,7 +25,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandi
 import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Import;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.datastore.jpa.JpaDatastore;
 import com.holonplatform.jpa.spring.boot.internal.JpaDatastoreAutoConfigurationRegistrar;
 import com.holonplatform.spring.EnableDatastoreConfiguration;
@@ -33,6 +32,7 @@ import com.holonplatform.spring.EnableDatastoreConfiguration;
 @AutoConfiguration
 @ConditionalOnClass(JpaDatastore.class)
 @AutoConfigureAfter({HibernateJpaAutoConfiguration.class, JpaAutoConfiguration.class})
+@SuppressWarnings("java:S1118") // Spring instantiates this @AutoConfiguration class via reflection; a private constructor would break bean creation
 public class JpaDatastoreAutoConfiguration {
 
 	@ConditionalOnMissingBean({ JpaDatastore.class })

@@ -64,6 +64,8 @@ public final class AsyncQuery {
 	private static final ExecutorService VIRTUAL_THREAD_EXECUTOR = 
 		Executors.newVirtualThreadPerTaskExecutor();
 
+	private static final String PROPERTIES_NOT_NULL_MESSAGE = "Properties must not be null";
+
 	private final Query query;
 	private final ExecutorService executor;
 
@@ -108,7 +110,7 @@ public final class AsyncQuery {
 	 */
 	@SuppressWarnings("unchecked")
 	public CompletableFuture<List<PropertyBox>> listAsync(Iterable<?> properties) {
-		Objects.requireNonNull(properties, "Properties must not be null");
+		Objects.requireNonNull(properties, PROPERTIES_NOT_NULL_MESSAGE);
 		return CompletableFuture.supplyAsync(
 			() -> query.list((Iterable<com.holonplatform.core.property.Property<?>>) properties),
 			executor
@@ -125,7 +127,7 @@ public final class AsyncQuery {
 	 */
 	@SuppressWarnings("unchecked")
 	public CompletableFuture<Optional<PropertyBox>> findOneAsync(Iterable<?> properties) {
-		Objects.requireNonNull(properties, "Properties must not be null");
+		Objects.requireNonNull(properties, PROPERTIES_NOT_NULL_MESSAGE);
 		return CompletableFuture.supplyAsync(
 			() -> query.findOne((Iterable<com.holonplatform.core.property.Property<?>>) properties),
 			executor
@@ -144,7 +146,7 @@ public final class AsyncQuery {
 	 */
 	@SuppressWarnings("unchecked")
 	public CompletableFuture<Stream<PropertyBox>> streamAsync(Iterable<?> properties) {
-		Objects.requireNonNull(properties, "Properties must not be null");
+		Objects.requireNonNull(properties, PROPERTIES_NOT_NULL_MESSAGE);
 		return CompletableFuture.supplyAsync(
 			() -> query.stream((Iterable<com.holonplatform.core.property.Property<?>>) properties),
 			executor

@@ -30,6 +30,8 @@ import com.holonplatform.core.datastore.Datastore.OperationResult;
 import org.junit.jupiter.api.Test;
 import com.holonplatform.core.property.PropertyBox;
 
+// NumericProperty constants passed to PropertyBox.getValue(Property<@Nullable T>) trigger JDT unchecked null-conversion warnings
+@SuppressWarnings("null")
 class RefreshTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

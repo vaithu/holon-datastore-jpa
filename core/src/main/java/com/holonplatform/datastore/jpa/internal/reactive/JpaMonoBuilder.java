@@ -84,7 +84,7 @@ public class JpaMonoBuilder {
      *
      * @return configured Mono for single result
      */
-    public reactor.core.publisher.Mono<?> build() {
+    public reactor.core.publisher.Mono<com.holonplatform.core.property.PropertyBox> build() {
         return JpaMono.from(query, properties, scheduler);
     }
 }

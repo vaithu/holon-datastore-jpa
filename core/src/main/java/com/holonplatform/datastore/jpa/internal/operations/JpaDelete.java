@@ -51,7 +51,7 @@ public class JpaDelete extends AbstractDelete {
 		}
 	};
 
-	private final JpaOperationContext operationContext;
+	private final transient JpaOperationContext operationContext;
 
 	public JpaDelete(JpaOperationContext operationContext) {
 		super();
@@ -78,7 +78,7 @@ public class JpaDelete extends AbstractDelete {
 		return operationContext.withEntityManager(entityManager -> {
 
 			// create a new instance
-			Object instance = entity.newInstance();
+			Object instance = entity.getDeclaredConstructor().newInstance();
 
 			// write box values into instance
 			operationContext.getBeanIntrospector().write(getConfiguration().getValue(), instance);

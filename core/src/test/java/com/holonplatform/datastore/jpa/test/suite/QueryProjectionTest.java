@@ -60,6 +60,7 @@ import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestProjectionBean;
 import com.holonplatform.datastore.jpa.test.model.entity.Test1;
 
+@SuppressWarnings("null") // JDT strict-null false positives on Property.getValue/projections against holon-core @Nullable API
 class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test
@@ -100,6 +101,7 @@ class QueryProjectionTest extends AbstractJpaDatastoreSuiteTest {
 	}
 
 	@Test
+	@SuppressWarnings("java:S5961") // Comprehensive projection test intentionally validates many projection variants in one scenario
 	void testProperty() {
 		Long key = getDatastore().query().target(JPA_TARGET).filter(KEY.eq(1L)).findOne(KEY).orElse(null);
 		assertNotNull(key);

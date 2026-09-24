@@ -137,52 +137,20 @@ public class ParallelBatchExecutor<T> {
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		for (int partitionIndex = 0; partitionIndex < partitions.size(); partitionIndex++) {
 			final int index = partitionIndex;
-			List<T> partition = partitions.get(partitionIndex);
+			final List<T> partition = partitions.get(partitionIndex);
 
-			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-				try {
-					for (T item : partition) {
-						try {
-							operation.accept(item);
-							successCount.incrementAndGet();
-						} catch (Exception e) {
-							failureCount.incrementAndGet();
-							if (!partitionErrors.containsKey(index)) {
-								partitionErrors.put(index, e);
-							}
-						}
-					}
-				} catch (Exception e) {
-					// Catch any unexpected errors in the partition processing
-					partitionErrors.put(index, e);
-				}
-			}, executor);
-
-			futures.add(future);
+			futures.add(CompletableFuture.runAsync(
+					() -> processPartition(partition, index, operation, successCount, failureCount, partitionErrors),
+					executor));
 
 			// Limit concurrency to degreeOfParallelism
 			if (futures.size() >= degreeOfParallelism) {
-				try {
-					CompletableFuture.anyOf(futures.toArray(new CompletableFuture[0])).get();
-					futures.removeIf(CompletableFuture::isDone);
-				} catch (Exception e) {
-					// Log or handle exception if needed, continue processing
-					Thread.currentThread().interrupt();
-					throw new InterruptedException("Interrupted during batch processing: " + e.getMessage());
-				}
+				awaitAnyAndPrune(futures);
 			}
 		}
 
 		// Wait for all remaining futures
-		if (!futures.isEmpty()) {
-			try {
-				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
-			} catch (Exception e) {
-				// Log or handle exception if needed
-				Thread.currentThread().interrupt();
-				throw new InterruptedException("Interrupted during batch completion: " + e.getMessage());
-			}
-		}
+		awaitAll(futures);
 
 		long executionTimeMs = System.currentTimeMillis() - startTime;
 
@@ -191,11 +159,68 @@ public class ParallelBatchExecutor<T> {
 	}
 
 	/**
+	 * Apply the operation to every item of a partition, recording per-item and partition-level failures.
+	 */
+	private void processPartition(List<T> partition, int index, Consumer<T> operation, AtomicInteger successCount,
+			AtomicInteger failureCount, Map<Integer, Exception> partitionErrors) {
+		try {
+			for (T item : partition) {
+				processItem(item, index, operation, successCount, failureCount, partitionErrors);
+			}
+		} catch (Exception e) {
+			// Catch any unexpected errors in the partition processing
+			partitionErrors.put(index, e);
+		}
+	}
+
+	/**
+	 * Apply the operation to a single item, updating success/failure counters.
+	 */
+	private void processItem(T item, int index, Consumer<T> operation, AtomicInteger successCount,
+			AtomicInteger failureCount, Map<Integer, Exception> partitionErrors) {
+		try {
+			operation.accept(item);
+			successCount.incrementAndGet();
+		} catch (Exception e) {
+			failureCount.incrementAndGet();
+			partitionErrors.putIfAbsent(index, e);
+		}
+	}
+
+	/**
+	 * Wait for any in-flight future to complete, then remove all completed futures to keep concurrency bounded.
+	 */
+	private void awaitAnyAndPrune(List<CompletableFuture<Void>> futures) throws InterruptedException {
+		try {
+			CompletableFuture.anyOf(futures.toArray(new CompletableFuture[0])).get();
+			futures.removeIf(f -> f != null && f.isDone());
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+			throw new InterruptedException("Interrupted during batch processing: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Wait for all remaining futures to complete.
+	 */
+	private void awaitAll(List<CompletableFuture<Void>> futures) throws InterruptedException {
+		if (futures.isEmpty()) {
+			return;
+		}
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+			throw new InterruptedException("Interrupted during batch completion: " + e.getMessage());
+		}
+	}
+
+	/**
 	 * Shutdown the executor if it's a managed executor (e.g., newVirtualThreadPerTaskExecutor).
 	 */
 	public void shutdown() {
-		if (executor instanceof java.util.concurrent.ExecutorService) {
-			((java.util.concurrent.ExecutorService) executor).shutdown();
+		if (executor instanceof java.util.concurrent.ExecutorService executorService) {
+			executorService.shutdown();
 		}
 	}
 

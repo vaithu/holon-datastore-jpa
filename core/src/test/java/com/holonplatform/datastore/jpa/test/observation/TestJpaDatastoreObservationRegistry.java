@@ -28,7 +28,6 @@ import com.holonplatform.datastore.jpa.observation.DefaultJpaDatastoreObservatio
 import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationEvent;
 import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationListener;
 import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationNames;
-import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationRegistry;
 
 /**
  * Unit tests for {@link DefaultJpaDatastoreObservationRegistry}.
@@ -36,13 +35,13 @@ import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationRegist
  * @since 10.0.0
  */
 @DisplayName("JpaDatastoreObservationRegistry Tests")
-public class TestJpaDatastoreObservationRegistry {
+class TestJpaDatastoreObservationRegistry {
 
 	private DefaultJpaDatastoreObservationRegistry registry;
 	private TestListener listener;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		registry = new DefaultJpaDatastoreObservationRegistry();
 		listener = new TestListener();
 		registry.registerListener(listener);
@@ -50,7 +49,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should emit start event")
-	public void testOnStart() {
+	void testOnStart() {
 		JpaDatastoreObservationEvent event = new JpaDatastoreObservationEvent(
 				JpaDatastoreObservationNames.QUERY, "TestEntity");
 		registry.onStart(event);
@@ -61,7 +60,8 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should emit complete event with duration")
-	public void testOnComplete() throws InterruptedException {
+	@SuppressWarnings("java:S2925") // Thread.sleep is intentional here to assert a measurable elapsed duration
+	void testOnComplete() throws InterruptedException {
 		JpaDatastoreObservationEvent event = new JpaDatastoreObservationEvent(
 				JpaDatastoreObservationNames.SAVE, "TestEntity");
 		registry.onStart(event);
@@ -76,7 +76,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should emit error event")
-	public void testOnError() {
+	void testOnError() {
 		JpaDatastoreObservationEvent event = new JpaDatastoreObservationEvent(
 				JpaDatastoreObservationNames.DELETE, "TestEntity");
 		RuntimeException exception = new RuntimeException("Test error");
@@ -90,7 +90,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should support custom attributes")
-	public void testAttributes() {
+	void testAttributes() {
 		JpaDatastoreObservationEvent event = new JpaDatastoreObservationEvent(
 				JpaDatastoreObservationNames.UPDATE, "TestEntity");
 		event.setAttribute("operation_type", "bulk_update");
@@ -105,7 +105,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should observe operation with result")
-	public void testObserveWithResult() throws Exception {
+	void testObserveWithResult() throws Exception {
 		String result = registry.observe(JpaDatastoreObservationNames.QUERY, null,
 				() -> "test_result");
 
@@ -117,7 +117,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should observe operation with exception")
-	public void testObserveWithException() {
+	void testObserveWithException() {
 		RuntimeException testException = new RuntimeException("Operation failed");
 
 		assertThrows(RuntimeException.class, () -> {
@@ -135,7 +135,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should observe void operation")
-	public void testObserveVoid() throws Exception {
+	void testObserveVoid() throws Exception {
 		List<String> trace = new ArrayList<>();
 		registry.observeVoid(JpaDatastoreObservationNames.TRANSACTION, null,
 				() -> trace.add("executed"));
@@ -147,7 +147,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should handle multiple listeners")
-	public void testMultipleListeners() {
+	void testMultipleListeners() {
 		TestListener listener2 = new TestListener();
 		registry.registerListener(listener2);
 
@@ -161,7 +161,7 @@ public class TestJpaDatastoreObservationRegistry {
 
 	@Test
 	@DisplayName("Should remove listeners")
-	public void testUnregisterListener() {
+	void testUnregisterListener() {
 		registry.unregisterListener(listener);
 
 		JpaDatastoreObservationEvent event = new JpaDatastoreObservationEvent(

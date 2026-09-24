@@ -15,7 +15,6 @@
  */
 package com.holonplatform.jpa.spring.test;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaDatastore;

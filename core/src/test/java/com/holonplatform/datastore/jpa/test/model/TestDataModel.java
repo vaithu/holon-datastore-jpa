@@ -28,6 +28,7 @@ import com.holonplatform.core.property.TemporalProperty;
 import com.holonplatform.core.property.VirtualProperty;
 import com.holonplatform.core.temporal.TemporalType;
 
+@SuppressWarnings("null") // JDT strict-null false positives against holon-core @NonNull property API
 public interface TestDataModel {
 
 	// public final static JpaTarget<Test1> JPA_TARGET = JpaTarget.of(Test1.class);

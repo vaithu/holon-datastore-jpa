@@ -37,7 +37,7 @@ import jakarta.annotation.Priority;
  *
  * @since 5.0.0
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "null" })
 @Priority(Integer.MAX_VALUE)
 public enum JPQLParameterizableExpressionResolver
 		implements JPQLContextExpressionResolver<JPQLParameterizableExpression, JPQLExpression> {

@@ -85,7 +85,7 @@ public class JpaFluxBuilder {
      *
      * @return configured Flux for streaming results
      */
-    public reactor.core.publisher.Flux<?> build() {
+    public reactor.core.publisher.Flux<com.holonplatform.core.property.PropertyBox> build() {
         return JpaFlux.from(query, properties, scheduler);
     }
 }

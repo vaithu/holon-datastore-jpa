@@ -81,7 +81,7 @@ public enum DefaultJPQLValueDeserializer implements JPQLValueDeserializer {
 	 * @see com.holonplatform.datastore.jpa.operation.JpaValueDeserializer#deserialize(com.holonplatform.datastore.jpa.
 	 * context.JpaExecutionContext, com.holonplatform.core.TypedExpression, java.lang.Object)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "null" })
 	@Override
 	public <T> T deserialize(JpaExecutionContext context, TypedExpression<T> expression, Object valueToDeserialize)
 			throws DataAccessException {
@@ -121,10 +121,9 @@ public enum DefaultJPQLValueDeserializer implements JPQLValueDeserializer {
 
 		Object deserialized = deserialize(targetType, value);
 
-		if (converter != null) {
-			if (deserialized == null || TypeUtils.isAssignable(deserialized.getClass(), converter.getModelType())) {
-				deserialized = ((ExpressionValueConverter<Object, Object>) converter).fromModel(deserialized);
-			}
+		if (converter != null && (deserialized == null
+				|| TypeUtils.isAssignable(deserialized.getClass(), converter.getModelType()))) {
+			deserialized = ((ExpressionValueConverter<Object, Object>) converter).fromModel(deserialized);
 		}
 
 		final Object deserializedValue = deserialized;
@@ -161,87 +160,9 @@ public enum DefaultJPQLValueDeserializer implements JPQLValueDeserializer {
 		}
 
 		// date and times
-		if (Date.class.isAssignableFrom(value.getClass())) {
-			if (LocalDate.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalDate((Date) value);
-			}
-			if (LocalDateTime.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalDateTime((Date) value);
-			}
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalTime((Date) value);
-			}
-		}
-		if (java.util.Date.class.isAssignableFrom(value.getClass())) {
-			if (LocalDate.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalDate((java.util.Date) value);
-			}
-			if (LocalDateTime.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalDateTime((java.util.Date) value);
-			}
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ConversionUtils.toLocalTime((java.util.Date) value);
-			}
-		}
-
-		if (Timestamp.class.isAssignableFrom(value.getClass())) {
-			if (LocalDateTime.class.isAssignableFrom(targetType)) {
-				return ((Timestamp) value).toLocalDateTime();
-			}
-			if (LocalDate.class.isAssignableFrom(targetType)) {
-				return ((Timestamp) value).toLocalDateTime().toLocalDate();
-			}
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ((Timestamp) value).toLocalDateTime().toLocalTime();
-			}
-			if (java.util.Date.class.isAssignableFrom(targetType)) {
-				Calendar c = Calendar.getInstance();
-				c.setTimeInMillis(((Timestamp) value).getTime());
-				return c.getTime();
-			}
-		}
-
-		if (Time.class.isAssignableFrom(value.getClass())) {
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ((Time) value).toLocalTime();
-			}
-		}
-
-		if (LocalDate.class.isAssignableFrom(value.getClass())) {
-			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
-				return Date.valueOf(((LocalDate) value));
-			}
-		}
-		if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
-			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
-				return new Date(Timestamp.valueOf(((LocalDateTime) value)).getTime());
-			}
-			if (Timestamp.class.isAssignableFrom(targetType)) {
-				return Timestamp.valueOf(((LocalDateTime) value));
-			}
-			if (LocalDate.class.isAssignableFrom(targetType)) {
-				return ((LocalDateTime) value).toLocalDate();
-			}
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ((LocalDateTime) value).toLocalTime();
-			}
-		}
-		if (OffsetDateTime.class.isAssignableFrom(value.getClass())) {
-			if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
-				return new Date(Timestamp.valueOf(((OffsetDateTime) value).toLocalDateTime()).getTime());
-			}
-			if (Timestamp.class.isAssignableFrom(targetType)) {
-				return Timestamp.valueOf(((OffsetDateTime) value).toLocalDateTime());
-			}
-			if (LocalDateTime.class.isAssignableFrom(targetType)) {
-				return ((OffsetDateTime) value).toLocalDateTime();
-			}
-			if (LocalDate.class.isAssignableFrom(targetType)) {
-				return ((OffsetDateTime) value).toLocalDate();
-			}
-			if (LocalTime.class.isAssignableFrom(targetType)) {
-				return ((OffsetDateTime) value).toLocalTime();
-			}
+		Object temporal = deserializeTemporal(targetType, value);
+		if (temporal != null) {
+			return temporal;
 		}
 
 		// String to Reader
@@ -250,11 +171,138 @@ public enum DefaultJPQLValueDeserializer implements JPQLValueDeserializer {
 		}
 
 		// Byte[] to InputStream
-		if (value instanceof byte[] && InputStream.class.isAssignableFrom(targetType)) {
-			return new ByteArrayInputStream((byte[]) value);
+		if (value instanceof byte[] bytes && InputStream.class.isAssignableFrom(targetType)) {
+			return new ByteArrayInputStream(bytes);
 		}
 
 		return value;
+	}
+
+	/**
+	 * Deserialize a date/time <code>value</code> to the given <code>targetType</code>, preserving the original type
+	 * precedence and fall-through behaviour.
+	 * @param targetType Target type to obtain
+	 * @param value Value to deserialize (not null)
+	 * @return Deserialized value, or <code>null</code> if the value type/target type combination is not handled
+	 */
+	private static Object deserializeTemporal(Class<?> targetType, Object value) {
+		final Class<?> valueType = value.getClass();
+		Object result = null;
+		if (Date.class.isAssignableFrom(valueType)) {
+			result = fromSqlDate(targetType, (Date) value);
+		}
+		if (result == null && java.util.Date.class.isAssignableFrom(valueType)) {
+			result = fromUtilDate(targetType, (java.util.Date) value);
+		}
+		if (result == null && Timestamp.class.isAssignableFrom(valueType)) {
+			result = fromTimestamp(targetType, (Timestamp) value);
+		}
+		if (result == null && Time.class.isAssignableFrom(valueType)) {
+			result = fromSqlTime(targetType, (Time) value);
+		}
+		if (result == null && LocalDate.class.isAssignableFrom(valueType)) {
+			result = fromLocalDate(targetType, (LocalDate) value);
+		}
+		if (result == null && LocalDateTime.class.isAssignableFrom(valueType)) {
+			result = fromLocalDateTime(targetType, (LocalDateTime) value);
+		}
+		if (result == null && OffsetDateTime.class.isAssignableFrom(valueType)) {
+			result = fromOffsetDateTime(targetType, (OffsetDateTime) value);
+		}
+		return result;
+	}
+
+	private static Object fromSqlDate(Class<?> targetType, Date value) {
+		if (LocalDate.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalDate(value);
+		}
+		if (LocalDateTime.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalDateTime(value);
+		}
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalTime(value);
+		}
+		return null;
+	}
+
+	private static Object fromUtilDate(Class<?> targetType, java.util.Date value) {
+		if (LocalDate.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalDate(value);
+		}
+		if (LocalDateTime.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalDateTime(value);
+		}
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return ConversionUtils.toLocalTime(value);
+		}
+		return null;
+	}
+
+	private static Object fromTimestamp(Class<?> targetType, Timestamp value) {
+		if (LocalDateTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalDateTime();
+		}
+		if (LocalDate.class.isAssignableFrom(targetType)) {
+			return value.toLocalDateTime().toLocalDate();
+		}
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalDateTime().toLocalTime();
+		}
+		if (java.util.Date.class.isAssignableFrom(targetType)) {
+			Calendar c = Calendar.getInstance();
+			c.setTimeInMillis(value.getTime());
+			return c.getTime();
+		}
+		return null;
+	}
+
+	private static Object fromSqlTime(Class<?> targetType, Time value) {
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalTime();
+		}
+		return null;
+	}
+
+	private static Object fromLocalDate(Class<?> targetType, LocalDate value) {
+		if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+			return Date.valueOf(value);
+		}
+		return null;
+	}
+
+	private static Object fromLocalDateTime(Class<?> targetType, LocalDateTime value) {
+		if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+			return new Date(Timestamp.valueOf(value).getTime());
+		}
+		if (Timestamp.class.isAssignableFrom(targetType)) {
+			return Timestamp.valueOf(value);
+		}
+		if (LocalDate.class.isAssignableFrom(targetType)) {
+			return value.toLocalDate();
+		}
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalTime();
+		}
+		return null;
+	}
+
+	private static Object fromOffsetDateTime(Class<?> targetType, OffsetDateTime value) {
+		if (Date.class.isAssignableFrom(targetType) || java.util.Date.class.isAssignableFrom(targetType)) {
+			return new Date(Timestamp.valueOf(value.toLocalDateTime()).getTime());
+		}
+		if (Timestamp.class.isAssignableFrom(targetType)) {
+			return Timestamp.valueOf(value.toLocalDateTime());
+		}
+		if (LocalDateTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalDateTime();
+		}
+		if (LocalDate.class.isAssignableFrom(targetType)) {
+			return value.toLocalDate();
+		}
+		if (LocalTime.class.isAssignableFrom(targetType)) {
+			return value.toLocalTime();
+		}
+		return null;
 	}
 
 }

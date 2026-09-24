@@ -34,6 +34,8 @@ import com.holonplatform.datastore.jpa.test.model.TestEnum;
 
 @Entity
 @Table(name = "test1")
+// @Temporal/TemporalType are deprecated in JPA 3.2 but still required to map java.util.Date columns
+@SuppressWarnings("deprecation")
 public class Test1 implements TestData {
 
 	private static final long serialVersionUID = 1L;

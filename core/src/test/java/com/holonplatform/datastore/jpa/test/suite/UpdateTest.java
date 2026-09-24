@@ -45,6 +45,8 @@ import com.holonplatform.datastore.jpa.JpaWriteOption;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestSampleData;
 
+// NumericProperty constants passed to PropertyBox.getValue(Property<@Nullable T>) trigger JDT unchecked null-conversion warnings
+@SuppressWarnings("null")
 class UpdateTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

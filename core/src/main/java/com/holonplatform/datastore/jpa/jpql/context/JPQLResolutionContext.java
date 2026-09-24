@@ -45,6 +45,7 @@ import com.holonplatform.datastore.jpa.jpql.expression.JPQLParameter;
  *
  * @since 5.1.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives on free type variable R
 public interface JPQLResolutionContext extends JpaContext, ResolutionContext, ExpressionResolverSupport {
 
 	/**

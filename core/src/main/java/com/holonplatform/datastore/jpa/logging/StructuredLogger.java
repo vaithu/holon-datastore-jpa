@@ -60,7 +60,6 @@ public final class StructuredLogger {
 	private static final String DURATION_KEY = CONTEXT_PREFIX + "duration_ms";
 	private static final String RECORD_COUNT_KEY = CONTEXT_PREFIX + "record_count";
 	private static final String TRACE_ID_KEY = "trace_id";
-	private static final String SPAN_ID_KEY = "span_id";
 
 	private final Logger logger;
 	private final Map<String, String> context;
@@ -270,14 +269,6 @@ public final class StructuredLogger {
 			MDC.clear();
 			previousContext.forEach(MDC::put);
 		}
-	}
-
-	/**
-	 * Functional interface for logging operations.
-	 */
-	@FunctionalInterface
-	private interface LogOperation {
-		void execute();
 	}
 
 	// ==================== Builder Class ====================

@@ -43,6 +43,7 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 import com.holonplatform.datastore.jpa.test.model.TestSampleData;
 
+@SuppressWarnings("null") // JDT strict-null false positives on Property.getValue against holon-core @Nullable API
 class InsertTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

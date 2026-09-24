@@ -54,6 +54,7 @@ import com.holonplatform.datastore.jpa.jpql.expression.JPQLParameterizableExpres
  *
  * @since 5.0.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives against holon-core @NonNull API
 @Priority(Integer.MAX_VALUE - 10)
 public enum VisitableQueryFilterResolver implements JPQLContextExpressionResolver<VisitableQueryFilter, JPQLExpression>,
 		QueryFilterVisitor<JPQLExpression, JPQLResolutionContext> {
@@ -346,9 +347,7 @@ public enum VisitableQueryFilterResolver implements JPQLContextExpressionResolve
 	private static String resolveFilterList(List<QueryFilter> filters, String separator, JPQLResolutionContext context)
 			throws InvalidExpressionException {
 		List<String> resolved = new LinkedList<>();
-		filters.forEach(f -> {
-			resolved.add(context.resolveOrFail(f, JPQLExpression.class).getValue());
-		});
+		filters.forEach(f -> resolved.add(context.resolveOrFail(f, JPQLExpression.class).getValue()));
 		return resolved.stream().collect(Collectors.joining(separator));
 	}
 

@@ -16,15 +16,15 @@
 package com.holonplatform.datastore.jpa.internal.reactive;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jpa.internal.util.AsyncQuery;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -56,6 +56,7 @@ import reactor.core.scheduler.Schedulers;
  *
  * @since 12.0.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives against Reactor @NonNull API
 public final class JpaFlux {
 
 	private JpaFlux() {
@@ -112,7 +113,7 @@ public final class JpaFlux {
 	 * @param properties Property iterable to retrieve
 	 * @return Flux emitting query results
 	 */
-	public static Flux<?> from(Query query, Iterable<?> properties) {
+	public static Flux<PropertyBox> from(Query query, Iterable<?> properties) {
 		return from(query, properties, Schedulers.boundedElastic());
 	}
 
@@ -127,7 +128,7 @@ public final class JpaFlux {
 	 * @param scheduler the scheduler for async execution
 	 * @return Flux emitting query results
 	 */
-	public static Flux<?> from(Query query, Iterable<?> properties, Scheduler scheduler) {
+	public static Flux<PropertyBox> from(Query query, Iterable<?> properties, Scheduler scheduler) {
 		Objects.requireNonNull(query, "Query must not be null");
 		Objects.requireNonNull(properties, "Properties must not be null");
 		Objects.requireNonNull(scheduler, "Scheduler must not be null");
@@ -140,7 +141,10 @@ public final class JpaFlux {
 			try {
 				var results = asyncQuery.listAsync(properties).get();
 				return Flux.fromIterable(results);
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return Flux.error(e);
+			} catch (ExecutionException e) {
 				return Flux.error(e);
 			}
 		})
@@ -157,7 +161,7 @@ public final class JpaFlux {
 	 * @param properties Property iterable to retrieve
 	 * @return Flux emitting query results in streaming fashion
 	 */
-	public static Flux<?> fromStream(Query query, Iterable<?> properties) {
+	public static Flux<PropertyBox> fromStream(Query query, Iterable<?> properties) {
 		return fromStream(query, properties, Schedulers.boundedElastic());
 	}
 
@@ -172,7 +176,7 @@ public final class JpaFlux {
 	 * @param scheduler the scheduler for async execution
 	 * @return Flux emitting query results in streaming fashion
 	 */
-	public static Flux<?> fromStream(Query query, Iterable<?> properties, Scheduler scheduler) {
+	public static Flux<PropertyBox> fromStream(Query query, Iterable<?> properties, Scheduler scheduler) {
 		Objects.requireNonNull(query, "Query must not be null");
 		Objects.requireNonNull(properties, "Properties must not be null");
 		Objects.requireNonNull(scheduler, "Scheduler must not be null");
@@ -185,7 +189,10 @@ public final class JpaFlux {
 			try {
 				var results = asyncQuery.streamAsync(properties).get();
 				return Flux.fromStream(results);
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return Flux.error(e);
+			} catch (ExecutionException e) {
 				return Flux.error(e);
 			}
 		})

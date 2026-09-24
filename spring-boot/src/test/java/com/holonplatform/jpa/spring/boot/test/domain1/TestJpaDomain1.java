@@ -16,7 +16,6 @@
 package com.holonplatform.jpa.spring.boot.test.domain1;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 

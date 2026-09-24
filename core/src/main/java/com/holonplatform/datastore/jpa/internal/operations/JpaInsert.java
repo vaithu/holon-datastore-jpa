@@ -17,7 +17,6 @@ package com.holonplatform.datastore.jpa.internal.operations;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import jakarta.persistence.EntityManager;
@@ -36,7 +35,6 @@ import com.holonplatform.core.datastore.DefaultWriteOption;
 import com.holonplatform.core.datastore.operation.Insert;
 import com.holonplatform.core.internal.Logger;
 import com.holonplatform.core.internal.datastore.operation.AbstractInsert;
-import com.holonplatform.core.property.PathProperty;
 import com.holonplatform.core.property.PathPropertyBoxAdapter;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
@@ -58,7 +56,7 @@ public class JpaInsert extends AbstractInsert {
 	/**
 	 * Logger
 	 */
-	private final static Logger LOGGER = JpaDatastoreLogger.create();
+	private static final Logger LOGGER = JpaDatastoreLogger.create();
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -75,7 +73,7 @@ public class JpaInsert extends AbstractInsert {
 		}
 	};
 
-	private final JpaOperationContext operationContext;
+	private final transient JpaOperationContext operationContext;
 
 	public JpaInsert(JpaOperationContext operationContext) {
 		super();
@@ -102,7 +100,7 @@ public class JpaInsert extends AbstractInsert {
 		return operationContext.withEntityManager(entityManager -> {
 
 			// create a new instance
-			Object instance = entity.newInstance();
+			Object instance = entity.getDeclaredConstructor().newInstance();
 			// Bean property set
 			final BeanPropertySet<Object> set = operationContext.getBeanIntrospector().getPropertySet(entity);
 			// persist entity
@@ -168,15 +166,14 @@ public class JpaInsert extends AbstractInsert {
 			et.getSingularAttributes().stream()
 					.filter(a -> ((SingularAttribute<?, ?>) a).isVersion())
 					.findFirst()
-					.ifPresent(versionAttr -> {
-						set.getProperty(((SingularAttribute<?, ?>) versionAttr).getName()).ifPresent(p -> {
-							Object versionValue = set.read((PathProperty<Object>) p, instance);
-							PathPropertyBoxAdapter versionAdapter = PathPropertyBoxAdapter.create(propertyBox);
-							if (versionAdapter.contains(p)) {
-								versionAdapter.setValue(p, versionValue);
-							}
-						});
-					});
+					.ifPresent(versionAttr -> set
+							.getProperty(((SingularAttribute<?, ?>) versionAttr).getName()).ifPresent(p -> {
+								Object versionValue = set.read(p, instance);
+								PathPropertyBoxAdapter versionAdapter = PathPropertyBoxAdapter.create(propertyBox);
+								if (versionAdapter.contains(p)) {
+									versionAdapter.setValue(p, versionValue);
+								}
+							}));
 		} catch (Exception e) {
 			LOGGER.warn("Failed to read back @Version attribute value after persist", e);
 		}
@@ -200,31 +197,36 @@ public class JpaInsert extends AbstractInsert {
 					final String idName = attribute.getName();
 					final Path parent = Path.of(idName, attribute.getJavaType());
 					EmbeddableType<?> emb = entityManager.getMetamodel().embeddable(attribute.getJavaType());
-					emb.getAttributes().forEach(a -> {
-						ids.add(Path.of(a.getName(), a.getJavaType()).parent(parent));
-					});
+					emb.getAttributes().forEach(a -> ids.add(Path.of(a.getName(), a.getJavaType()).parent(parent)));
 				} else {
 					String idName = et.getId(et.getIdType().getJavaType()).getName();
-					Optional<PathProperty<Object>> idProperty = set.getProperty(idName);
-					idProperty.ifPresent(p -> ids.add(p));
+					set.getProperty(idName).ifPresent(ids::add);
 				}
 			} else {
-				try {
-					Set<SingularAttribute> attributes = et.getIdClassAttributes();
-					if (attributes != null) {
-						attributes.forEach(a -> {
-							Optional<PathProperty<Object>> idProperty = set.getProperty(a.getName());
-							idProperty.ifPresent(p -> ids.add(p));
-						});
-					}
-				} catch (@SuppressWarnings("unused") IllegalArgumentException e) {
-					// ignore
-				}
+				addIdClassAttributes(et, set, ids);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Failed to obtain entity id(s) value", e);
 		}
 		return ids;
+	}
+
+	/**
+	 * Add the {@link Path}s of the entity {@code IdClass} attributes, if any, to the given list.
+	 * @param et Entity type metamodel
+	 * @param set Entity bean property set
+	 * @param ids List to populate with the id class attribute paths
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void addIdClassAttributes(EntityType et, BeanPropertySet<Object> set, List<Path> ids) {
+		try {
+			Set<SingularAttribute> attributes = et.getIdClassAttributes();
+			if (attributes != null) {
+				attributes.forEach(a -> set.getProperty(a.getName()).ifPresent(ids::add));
+			}
+		} catch (@SuppressWarnings("unused") IllegalArgumentException e) {
+			// ignore: entity has no IdClass
+		}
 	}
 
 }

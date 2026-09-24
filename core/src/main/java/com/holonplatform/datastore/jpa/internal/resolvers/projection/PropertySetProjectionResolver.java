@@ -85,7 +85,7 @@ public enum PropertySetProjectionResolver
 		Map<TypedExpression<?>, Property<?>> selectionProperties = new HashMap<>(size);
 
 		for (Property<?> property : expression.getPropertySet()) {
-			if (QueryProjection.class.isAssignableFrom(property.getClass())) {
+			if (property != null && QueryProjection.class.isAssignableFrom(property.getClass())) {
 				selection.add(property);
 				// resolve and get alias
 				final String alias = projection

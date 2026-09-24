@@ -34,7 +34,6 @@ import java.util.Objects;
 public class SliceAdapter {
 
     private final Query query;
-    private final Class<?> resultType;
 
     /**
      * Create a new SliceAdapter.
@@ -44,7 +43,7 @@ public class SliceAdapter {
      */
     public SliceAdapter(Query query, Class<?> resultType) {
         this.query = Objects.requireNonNull(query, "Query cannot be null");
-        this.resultType = Objects.requireNonNull(resultType, "Result type cannot be null");
+        Objects.requireNonNull(resultType, "Result type cannot be null");
     }
 
     /**

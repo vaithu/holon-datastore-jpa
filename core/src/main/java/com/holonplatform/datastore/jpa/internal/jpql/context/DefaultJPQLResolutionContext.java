@@ -15,9 +15,11 @@
  */
 package com.holonplatform.datastore.jpa.internal.jpql.context;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
@@ -50,7 +52,9 @@ import com.holonplatform.datastore.jpa.jpql.context.JPQLResolutionContext;
  */
 public class DefaultJPQLResolutionContext implements JPQLResolutionContext {
 
-	private final static Logger LOGGER = JpqlDatastoreLogger.create();
+	private static final Logger LOGGER = JpqlDatastoreLogger.create();
+
+	private static final String LOG_PARAMETER_WITH_NAME = "Setted parameter with name [";
 
 	/**
 	 * Expression resolvers
@@ -273,41 +277,39 @@ public class DefaultJPQLResolutionContext implements JPQLResolutionContext {
 
 			// date and times
 			if (TypeUtils.isDate(p.getType())) {
-				query.setParameter(n, (Date) p.getValue(), convert(p.getTemporalType().orElse(TemporalType.DATE)));
+				query.setParameter(n, toTemporal((Date) p.getValue(), p.getTemporalType().orElse(TemporalType.DATE)));
 
-				LOGGER.debug(() -> "Setted parameter with name [" + n + "] using Date value [" + p.getValue() + "]");
+				LOGGER.debug(() -> LOG_PARAMETER_WITH_NAME + n + "] using Date value [" + p.getValue() + "]");
 
 			} else if (TypeUtils.isCalendar(p.getType())) {
-				query.setParameter(n, (Calendar) p.getValue(), convert(p.getTemporalType().orElse(TemporalType.DATE)));
+				final Calendar calendar = (Calendar) p.getValue();
+				query.setParameter(n, toTemporal(calendar != null ? calendar.getTime() : null,
+						p.getTemporalType().orElse(TemporalType.DATE)));
 
 				LOGGER.debug(
-						() -> "Setted parameter with name [" + n + "] using Calendar value [" + p.getValue() + "]");
+						() -> LOG_PARAMETER_WITH_NAME + n + "] using Calendar value [" + p.getValue() + "]");
 
 			} else if (TypeUtils.isLocalTemporal(p.getType()) && !getDialect().temporalTypeParametersSupported()) {
-				final Date date;
-				jakarta.persistence.TemporalType tt = null;
+				final Object value;
 				if (LocalDate.class.isAssignableFrom(p.getType())) {
-					date = java.sql.Date.valueOf((LocalDate) p.getValue());
-					tt = jakarta.persistence.TemporalType.DATE;
+					value = java.sql.Date.valueOf((LocalDate) p.getValue());
 				} else if (LocalDateTime.class.isAssignableFrom(p.getType())) {
-					date = java.sql.Timestamp.valueOf((LocalDateTime) p.getValue());
-					tt = jakarta.persistence.TemporalType.TIMESTAMP;
+					value = java.sql.Timestamp.valueOf((LocalDateTime) p.getValue());
 				} else if (LocalTime.class.isAssignableFrom(p.getType())) {
-					date = java.sql.Time.valueOf((LocalTime) p.getValue());
-					tt = jakarta.persistence.TemporalType.TIME;
+					value = java.sql.Time.valueOf((LocalTime) p.getValue());
 				} else {
-					date = null;
+					value = null;
 				}
 
-				query.setParameter(n, date, tt);
+				query.setParameter(n, value);
 
 				LOGGER.debug(
-						() -> "Setted Temporal type parameter with name [" + n + "] using Date  value [" + date + "]");
+						() -> "Setted Temporal type parameter with name [" + n + "] using value [" + value + "]");
 			} else {
 				// default
 				query.setParameter(n, p.getValue());
 
-				LOGGER.debug(() -> "Setted parameter with name [" + n + "] using value [" + p.getValue() + "]");
+				LOGGER.debug(() -> LOG_PARAMETER_WITH_NAME + n + "] using value [" + p.getValue() + "]");
 			}
 
 		});
@@ -315,24 +317,27 @@ public class DefaultJPQLResolutionContext implements JPQLResolutionContext {
 	}
 
 	/**
-	 * Convert given <code>temporalType</code> into a JPA {@link jakarta.persistence.TemporalType}.
-	 * @param temporalType Temporal type to convert
-	 * @return Converted temporal type
+	 * Convert given {@link Date} <code>value</code> into a {@code java.time} temporal type according to the provided
+	 * {@link TemporalType}, so it can be bound as a query parameter without relying on the deprecated JPA
+	 * {@code TemporalType} based API.
+	 * @param value Date value to convert (may be null)
+	 * @param temporalType Temporal type to use
+	 * @return The converted {@code java.time} value, or <code>null</code> if the given value is <code>null</code>
 	 */
-	private static jakarta.persistence.TemporalType convert(TemporalType temporalType) {
-		if (temporalType != null) {
-			switch (temporalType) {
-			case DATE:
-				return jakarta.persistence.TemporalType.DATE;
-			case DATE_TIME:
-				return jakarta.persistence.TemporalType.TIMESTAMP;
-			case TIME:
-				return jakarta.persistence.TemporalType.TIME;
-			default:
-				break;
-			}
+	private static Object toTemporal(Date value, TemporalType temporalType) {
+		if (value == null) {
+			return null;
 		}
-		return null;
+		final Instant instant = Instant.ofEpochMilli(value.getTime());
+		switch (temporalType != null ? temporalType : TemporalType.DATE) {
+		case TIME:
+			return instant.atZone(ZoneId.systemDefault()).toLocalTime();
+		case DATE_TIME:
+			return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+		case DATE:
+		default:
+			return instant.atZone(ZoneId.systemDefault()).toLocalDate();
+		}
 	}
 
 }

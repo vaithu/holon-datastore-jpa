@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.relational.SubQuery;
 import com.holonplatform.core.property.PropertyBox;
 
+@SuppressWarnings("null") // JDT strict-null false positives on Property.getValue against holon-core @Nullable API
 class BulkDeleteAliasTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

@@ -30,6 +30,7 @@ import java.util.logging.Logger;
  * 
  * @since 12.0.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives on non-null stream elements
 public final class SlowQueryDetector implements QueryAuditListener {
 
 	private static final Logger LOGGER = Logger.getLogger(SlowQueryDetector.class.getName());

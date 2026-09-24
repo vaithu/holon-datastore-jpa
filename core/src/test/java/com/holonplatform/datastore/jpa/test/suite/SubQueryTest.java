@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import com.holonplatform.core.datastore.relational.SubQuery;
 import com.holonplatform.core.property.PathProperty;
 
+@SuppressWarnings("null") // JDT strict-null false positives on projections against holon-core @NonNull API
 class SubQueryTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

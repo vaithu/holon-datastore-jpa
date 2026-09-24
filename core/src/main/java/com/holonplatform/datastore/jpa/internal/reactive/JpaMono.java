@@ -15,14 +15,14 @@
  */
 package com.holonplatform.datastore.jpa.internal.reactive;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.query.Query;
 import com.holonplatform.datastore.jpa.internal.util.AsyncQuery;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -54,6 +54,7 @@ import reactor.core.scheduler.Schedulers;
  *
  * @since 12.0.0
  */
+@SuppressWarnings("null") // JDT strict-null false positives against Reactor @NonNull API
 public final class JpaMono {
 
 	private JpaMono() {
@@ -102,8 +103,11 @@ public final class JpaMono {
 		return Mono.fromFuture(CompletableFuture.supplyAsync(() -> {
 			try {
 				return future.get();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Interrupted while waiting for future result", e);
+			} catch (ExecutionException e) {
+				throw new IllegalStateException("Failed to obtain future result", e);
 			}
 		}));
 	}
@@ -118,7 +122,7 @@ public final class JpaMono {
 	 * @param properties Property iterable to retrieve
 	 * @return Mono emitting optional result
 	 */
-	public static Mono<?> from(Query query, Iterable<?> properties) {
+	public static Mono<PropertyBox> from(Query query, Iterable<?> properties) {
 		return from(query, properties, Schedulers.boundedElastic());
 	}
 
@@ -133,7 +137,7 @@ public final class JpaMono {
 	 * @param scheduler the scheduler for async execution
 	 * @return Mono emitting optional result
 	 */
-	public static Mono<?> from(Query query, Iterable<?> properties, Scheduler scheduler) {
+	public static Mono<PropertyBox> from(Query query, Iterable<?> properties, Scheduler scheduler) {
 		java.util.Objects.requireNonNull(query, "Query must not be null");
 		java.util.Objects.requireNonNull(properties, "Properties must not be null");
 		java.util.Objects.requireNonNull(scheduler, "Scheduler must not be null");
@@ -144,7 +148,7 @@ public final class JpaMono {
 			
 			// Execute async findOne operation and flatten Optional
 			return Mono.fromFuture(asyncQuery.findOneAsync(properties))
-				.flatMap(opt -> ((Optional<?>) opt).map(Mono::just).orElseGet(Mono::empty));
+				.flatMap(opt -> opt.map(Mono::just).orElseGet(Mono::empty));
 		})
 		.subscribeOn(scheduler);
 	}

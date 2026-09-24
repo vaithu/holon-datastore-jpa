@@ -36,7 +36,6 @@ import java.util.Objects;
 public class PageAdapter {
 
     private final Query query;
-    private final Class<?> resultType;
 
     /**
      * Create a new PageAdapter.
@@ -46,7 +45,7 @@ public class PageAdapter {
      */
     public PageAdapter(Query query, Class<?> resultType) {
         this.query = Objects.requireNonNull(query, "Query cannot be null");
-        this.resultType = Objects.requireNonNull(resultType, "Result type cannot be null");
+        Objects.requireNonNull(resultType, "Result type cannot be null");
     }
 
     /**

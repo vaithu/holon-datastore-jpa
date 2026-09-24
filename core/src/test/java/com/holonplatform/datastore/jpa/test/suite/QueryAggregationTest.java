@@ -36,6 +36,7 @@ import com.holonplatform.core.query.QueryAggregation;
 import com.holonplatform.core.query.QueryFilter;
 import com.holonplatform.datastore.jpa.test.model.TestEnum;
 
+@SuppressWarnings("null") // JDT strict-null false positives on Property.getValue against holon-core @Nullable API
 class QueryAggregationTest extends AbstractJpaDatastoreSuiteTest {
 
 	@Test

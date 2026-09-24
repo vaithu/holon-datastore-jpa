@@ -40,7 +40,7 @@ public class JpaSave extends AbstractSave {
 
 	private static final long serialVersionUID = -823102485809986906L;
 
-	private final static Logger LOGGER = JpaDatastoreLogger.create();
+	private static final Logger LOGGER = JpaDatastoreLogger.create();
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -57,7 +57,7 @@ public class JpaSave extends AbstractSave {
 		}
 	};
 
-	private final JpaOperationContext operationContext;
+	private final transient JpaOperationContext operationContext;
 
 	public JpaSave(JpaOperationContext operationContext) {
 		super();
@@ -89,7 +89,8 @@ public class JpaSave extends AbstractSave {
 					.getPropertySet(entity.getEntityClass());
 
 			// create instance and write values
-			Object instance = set.write(getConfiguration().getValue(), entity.getEntityClass().newInstance());
+			Object instance = set.write(getConfiguration().getValue(),
+					entity.getEntityClass().getDeclaredConstructor().newInstance());
 
 			OperationResult result;
 

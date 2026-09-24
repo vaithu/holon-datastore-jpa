@@ -21,7 +21,7 @@ import com.holonplatform.core.ExpressionResolver;
 import com.holonplatform.core.query.QuerySort;
 import com.holonplatform.datastore.jpa.test.model.TestDataModel;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "null" })
 public class StrKeySort implements QuerySort {
 
 	@Override

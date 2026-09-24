@@ -15,9 +15,8 @@
  */
 package com.holonplatform.datastore.jpa.async;
 
-import java.util.Objects;
-
-import com.holonplatform.datastore.jpa.JpaDatastore;
+import com.holonplatform.core.internal.Logger;
+import com.holonplatform.datastore.jpa.internal.JpaDatastoreLogger;
 
 /**
  * Convenience facade for all concurrency and high-performance features in Holon JPA Datastore.
@@ -112,6 +111,8 @@ import com.holonplatform.datastore.jpa.JpaDatastore;
  * @since 12.0.0
  */
 public final class ConcurrencyBuilder {
+
+	private static final Logger LOGGER = JpaDatastoreLogger.create();
 
 	private ConcurrencyBuilder() {
 		// Static factory only
@@ -395,7 +396,7 @@ public final class ConcurrencyBuilder {
 	 * </p>
 	 */
 	public static void printQuickReference() {
-		System.out.println("""
+		LOGGER.info("""
 			╔════════════════════════════════════════════════════════════════╗
 			║      Holon JPA Datastore Concurrency Features v12.0             ║
 			╠════════════════════════════════════════════════════════════════╣

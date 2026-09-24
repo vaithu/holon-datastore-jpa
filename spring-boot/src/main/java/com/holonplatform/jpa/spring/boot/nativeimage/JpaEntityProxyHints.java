@@ -38,7 +38,7 @@ public class JpaEntityProxyHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		registerHibernateProxyHints(hints);
+		registerHibernateProxyHints();
 		registerJakartaPersistenceHints(hints);
 	}
 
@@ -49,7 +49,7 @@ public class JpaEntityProxyHints implements RuntimeHintsRegistrar {
 	 * These need reflection hints in native image.
 	 * </p>
 	 */
-	private void registerHibernateProxyHints(RuntimeHints hints) {
+	private void registerHibernateProxyHints() {
 		// Hibernate proxy patterns - registered generically to handle dynamic proxy generation
 		// Specific Hibernate internals are registered via @RegisterReflectionForBinding
 	}
@@ -64,18 +64,18 @@ public class JpaEntityProxyHints implements RuntimeHintsRegistrar {
 	private void registerJakartaPersistenceHints(RuntimeHints hints) {
 		// Core entity and relationship annotations
 		hints.reflection()
-			.registerType(Entity.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.Table.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.Column.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.Id.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.GeneratedValue.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.OneToMany.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.ManyToOne.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.OneToOne.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.ManyToMany.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.JoinColumn.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.JoinTable.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.Transient.class, MemberCategory.INTROSPECT_PUBLIC_METHODS);
+			.registerType(Entity.class)
+			.registerType(jakarta.persistence.Table.class)
+			.registerType(jakarta.persistence.Column.class)
+			.registerType(jakarta.persistence.Id.class)
+			.registerType(jakarta.persistence.GeneratedValue.class)
+			.registerType(jakarta.persistence.OneToMany.class)
+			.registerType(jakarta.persistence.ManyToOne.class)
+			.registerType(jakarta.persistence.OneToOne.class)
+			.registerType(jakarta.persistence.ManyToMany.class)
+			.registerType(jakarta.persistence.JoinColumn.class)
+			.registerType(jakarta.persistence.JoinTable.class)
+			.registerType(jakarta.persistence.Transient.class);
 
 		// Entity manager and query interfaces
 		hints.reflection()
@@ -86,13 +86,13 @@ public class JpaEntityProxyHints implements RuntimeHintsRegistrar {
 
 		// JPA lifecycle callbacks
 		hints.reflection()
-			.registerType(jakarta.persistence.PrePersist.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PostPersist.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PreUpdate.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PostUpdate.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PreRemove.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PostRemove.class, MemberCategory.INTROSPECT_PUBLIC_METHODS)
-			.registerType(jakarta.persistence.PostLoad.class, MemberCategory.INTROSPECT_PUBLIC_METHODS);
+			.registerType(jakarta.persistence.PrePersist.class)
+			.registerType(jakarta.persistence.PostPersist.class)
+			.registerType(jakarta.persistence.PreUpdate.class)
+			.registerType(jakarta.persistence.PostUpdate.class)
+			.registerType(jakarta.persistence.PreRemove.class)
+			.registerType(jakarta.persistence.PostRemove.class)
+			.registerType(jakarta.persistence.PostLoad.class);
 	}
 
 }

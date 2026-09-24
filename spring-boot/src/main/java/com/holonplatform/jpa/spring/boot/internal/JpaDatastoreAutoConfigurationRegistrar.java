@@ -26,7 +26,6 @@ import org.springframework.util.ClassUtils;
 
 import io.micrometer.observation.ObservationRegistry;
 
-import com.holonplatform.core.datastore.Datastore;
 import com.holonplatform.core.datastore.DatastoreConfigProperties;
 import com.holonplatform.datastore.jpa.JpaDatastore;
 import com.holonplatform.datastore.jpa.dialect.ORMDialect;
@@ -73,11 +72,9 @@ public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 				"io.micrometer.observation.ObservationRegistry",
 				JpaDatastoreAutoConfigurationRegistrar.class.getClassLoader());
 
-		@SuppressWarnings("unchecked")
-		Class<DefaultJpaDatastore> datastoreClass = (Class<DefaultJpaDatastore>) (
-				transactional && hasObservation ? ObservableJpaDatastore.class
-				: transactional ? TransactionalJpaDatastore.class
-				: DefaultJpaDatastore.class);
+		DatastoreSettings settings = new DatastoreSettings(transactional, hasObservation, autoFlush, trace,
+				dialectClassName);
+		Class<DefaultJpaDatastore> datastoreClass = resolveDatastoreClass(settings);
 
 		String beanName = EnableJpaDatastore.DEFAULT_DATASTORE_BEAN_NAME;
 
@@ -86,48 +83,100 @@ public class JpaDatastoreAutoConfigurationRegistrar implements BeanRegistrar {
 				spec.primary();
 			}
 			spec.description("Holon JPA Datastore (auto-configured)");
-			spec.supplier(ctx -> {
-				EntityManagerFactory emf = ctx.bean(EntityManagerFactory.class);
-				DefaultJpaDatastore ds;
-				try {
-					ds = datastoreClass.getDeclaredConstructor().newInstance();
-				} catch (Exception e) {
-					throw new BeanCreationException(beanName,
-							"Failed to instantiate " + datastoreClass.getName(), e);
-				}
-				SpringEntityManagerLifecycleHandler handler = SpringEntityManagerLifecycleHandler.create();
-				ds.setEntityManagerFactory(emf);
-				ds.setEntityManagerInitializer(handler);
-				ds.setEntityManagerFinalizer(handler);
-				ds.setAutoFlush(autoFlush);
-				if (trace) {
-					ds.setTraceEnabled(true);
-				}
-				if (transactional && ds instanceof TransactionalJpaDatastore txDs) {
-					// single-context auto-config path: inject the transaction manager
-					ctx.beanProvider(PlatformTransactionManager.class)
-							.ifAvailable(txDs::setTransactionManager);
-				}
-					// Inject ObservationRegistry when micrometer is present — guarded by hasObservation
-					// so ObservableJpaDatastore is never instantiated or loaded without micrometer
-					if (hasObservation && ds instanceof ObservableJpaDatastore obsDs) {
-						ctx.beanProvider(ObservationRegistry.class)
-								.ifAvailable(obsDs::setObservationRegistry);
-					}
-				if (dialectClassName != null) {
-					try {
-						ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName)
-								.getDeclaredConstructor().newInstance();
-						ds.setDialect(dialect);
-					} catch (Exception e) {
-						throw new BeanCreationException(beanName,
-								"Failed to load ORMDialect class [" + dialectClassName + "]", e);
-					}
-				}
-				ds.initialize();
-				return ds;
-			});
+			spec.supplier(ctx -> createDatastore(ctx, beanName, datastoreClass, settings));
 		});
+	}
+
+	/**
+	 * Resolve the concrete datastore class to register based on the given settings.
+	 * @param settings Datastore settings
+	 * @return The datastore class to register
+	 */
+	@SuppressWarnings("unchecked")
+	private static Class<DefaultJpaDatastore> resolveDatastoreClass(DatastoreSettings settings) {
+		final Class<? extends DefaultJpaDatastore> resolved;
+		if (settings.transactional() && settings.hasObservation()) {
+			resolved = ObservableJpaDatastore.class;
+		} else if (settings.transactional()) {
+			resolved = TransactionalJpaDatastore.class;
+		} else {
+			resolved = DefaultJpaDatastore.class;
+		}
+		return (Class<DefaultJpaDatastore>) resolved;
+	}
+
+	/**
+	 * Create and initialize the datastore bean instance.
+	 * @param ctx            Bean supplier context
+	 * @param beanName       Registered bean name
+	 * @param datastoreClass Concrete datastore class
+	 * @param settings       Datastore settings
+	 * @return The initialized datastore instance
+	 */
+	private DefaultJpaDatastore createDatastore(BeanRegistry.SupplierContext ctx, String beanName,
+			Class<DefaultJpaDatastore> datastoreClass, DatastoreSettings settings) {
+		EntityManagerFactory emf = ctx.bean(EntityManagerFactory.class);
+		DefaultJpaDatastore ds = instantiateDatastore(datastoreClass, beanName);
+		SpringEntityManagerLifecycleHandler handler = SpringEntityManagerLifecycleHandler.create();
+		ds.setEntityManagerFactory(emf);
+		ds.setEntityManagerInitializer(handler);
+		ds.setEntityManagerFinalizer(handler);
+		ds.setAutoFlush(settings.autoFlush());
+		if (settings.trace()) {
+			ds.setTraceEnabled(true);
+		}
+		if (settings.transactional() && ds instanceof TransactionalJpaDatastore txDs) {
+			// single-context auto-config path: inject the transaction manager
+			ctx.beanProvider(PlatformTransactionManager.class).ifAvailable(txDs::setTransactionManager);
+		}
+		// Inject ObservationRegistry when micrometer is present — guarded by hasObservation
+		// so ObservableJpaDatastore is never instantiated or loaded without micrometer
+		if (settings.hasObservation() && ds instanceof ObservableJpaDatastore obsDs) {
+			ctx.beanProvider(ObservationRegistry.class).ifAvailable(obsDs::setObservationRegistry);
+		}
+		applyDialect(ds, settings.dialectClassName(), beanName);
+		ds.initialize();
+		return ds;
+	}
+
+	/**
+	 * Instantiate the datastore class using its default constructor.
+	 * @param datastoreClass Datastore class
+	 * @param beanName       Registered bean name
+	 * @return A new datastore instance
+	 */
+	private static DefaultJpaDatastore instantiateDatastore(Class<DefaultJpaDatastore> datastoreClass,
+			String beanName) {
+		try {
+			return datastoreClass.getDeclaredConstructor().newInstance();
+		} catch (ReflectiveOperationException e) {
+			throw new BeanCreationException(beanName, "Failed to instantiate " + datastoreClass.getName(), e);
+		}
+	}
+
+	/**
+	 * Load and apply the configured {@link ORMDialect}, if any.
+	 * @param ds               Datastore instance
+	 * @param dialectClassName Dialect class name (may be null)
+	 * @param beanName         Registered bean name
+	 */
+	private static void applyDialect(DefaultJpaDatastore ds, String dialectClassName, String beanName) {
+		if (dialectClassName == null) {
+			return;
+		}
+		try {
+			ORMDialect dialect = (ORMDialect) Class.forName(dialectClassName).getDeclaredConstructor().newInstance();
+			ds.setDialect(dialect);
+		} catch (ReflectiveOperationException e) {
+			throw new BeanCreationException(beanName, "Failed to load ORMDialect class [" + dialectClassName + "]", e);
+		}
+	}
+
+	/**
+	 * Immutable holder for the resolved datastore configuration settings.
+	 */
+	private record DatastoreSettings(boolean transactional, boolean hasObservation, boolean autoFlush, boolean trace,
+			String dialectClassName) {
 	}
 
 }

@@ -18,8 +18,6 @@ package com.holonplatform.jpa.spring.internal;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.holonplatform.core.datastore.Datastore.OperationResult;
-import com.holonplatform.core.datastore.DatastoreOperations.WriteOption;
 import com.holonplatform.core.datastore.DataTarget;
 import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore;
@@ -43,7 +41,7 @@ public class TransactionalJpaDatastore extends DefaultJpaDatastore {
 
 	private static final long serialVersionUID = 1L;
 
-	private PlatformTransactionManager transactionManager;
+	private transient PlatformTransactionManager transactionManager;
 
 	/**
 	 * Set the {@link PlatformTransactionManager} to use for write operations.

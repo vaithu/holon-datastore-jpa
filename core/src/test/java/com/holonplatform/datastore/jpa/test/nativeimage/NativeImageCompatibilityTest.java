@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import com.holonplatform.datastore.jpa.async.VirtualThreadDatastoreExecutor;
 import com.holonplatform.datastore.jpa.logging.StructuredLogger;
-import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationEvent;
 
 /**
  * GraalVM native image compatibility tests.
@@ -45,7 +44,7 @@ import com.holonplatform.datastore.jpa.observation.JpaDatastoreObservationEvent;
  * @since 10.0.0
  */
 @DisplayName("GraalVM Native Image Compatibility")
-public class NativeImageCompatibilityTest {
+class NativeImageCompatibilityTest {
 
 	/**
 	 * Test that virtual thread async executor can be instantiated.

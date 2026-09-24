@@ -8,6 +8,9 @@ import com.holonplatform.core.temporal.TemporalType;
 
 public class JpaTemporalBeanPropertyPostProcessor implements BeanPropertyPostProcessor {
 
+	// @Temporal / jakarta.persistence.TemporalType are deprecated since JPA 3.2 but must still be read here to
+	// support legacy entities mapping java.util.Date/Calendar fields
+	@SuppressWarnings("deprecation")
 	@Override
 	public BeanProperty.Builder<?> processBeanProperty(BeanProperty.Builder<?> property, Class<?> beanOrNestedClass) {
 		property.getAnnotation(Temporal.class).map(Temporal::value).map(JpaTemporalBeanPropertyPostProcessor::convert)
@@ -15,6 +18,7 @@ public class JpaTemporalBeanPropertyPostProcessor implements BeanPropertyPostPro
 		return property;
 	}
 
+	@SuppressWarnings("deprecation")
 	private static TemporalType convert(jakarta.persistence.TemporalType temporalType) {
 		switch (temporalType) {
 		case DATE:

@@ -54,8 +54,7 @@ public class JpaDatastoreRuntimeHints implements RuntimeHintsRegistrar {
 	private void registerJpaDatastoreHints(RuntimeHints hints) {
 		hints.reflection()
 			.registerType(JpaDatastore.class,
-				MemberCategory.INVOKE_PUBLIC_METHODS,
-				MemberCategory.INTROSPECT_PUBLIC_METHODS)
+				MemberCategory.INVOKE_PUBLIC_METHODS)
 			.registerType(com.holonplatform.datastore.jpa.internal.DefaultJpaDatastore.class,
 				MemberCategory.INVOKE_PUBLIC_METHODS,
 				MemberCategory.INVOKE_DECLARED_METHODS);
@@ -67,8 +66,7 @@ public class JpaDatastoreRuntimeHints implements RuntimeHintsRegistrar {
 	private void registerAsyncHints(RuntimeHints hints) {
 		hints.reflection()
 			.registerType(VirtualThreadDatastoreExecutor.class,
-				MemberCategory.INVOKE_PUBLIC_METHODS,
-				MemberCategory.INTROSPECT_PUBLIC_METHODS)
+				MemberCategory.INVOKE_PUBLIC_METHODS)
 			.registerType(VirtualThreadDatastoreExecutor.QueryOperation.class,
 				MemberCategory.INVOKE_PUBLIC_METHODS)
 			.registerType(VirtualThreadDatastoreExecutor.QueryStreamOperation.class,
@@ -92,8 +90,7 @@ public class JpaDatastoreRuntimeHints implements RuntimeHintsRegistrar {
 			.registerType(JpaDatastoreObservationListener.class,
 				MemberCategory.INVOKE_PUBLIC_METHODS)
 			.registerType(JpaDatastoreObservationEvent.class,
-				MemberCategory.INVOKE_PUBLIC_METHODS,
-				MemberCategory.INTROSPECT_PUBLIC_METHODS);
+				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		// Register observation functional interfaces
 		hints.reflection()

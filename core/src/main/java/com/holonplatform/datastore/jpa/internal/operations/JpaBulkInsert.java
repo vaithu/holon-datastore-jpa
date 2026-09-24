@@ -17,6 +17,8 @@ package com.holonplatform.datastore.jpa.internal.operations;
 
 import java.util.Map;
 
+import jakarta.persistence.EntityManager;
+
 import com.holonplatform.core.Expression.InvalidExpressionException;
 import com.holonplatform.core.beans.BeanPropertySet;
 import com.holonplatform.core.datastore.Datastore.OperationResult;
@@ -30,6 +32,7 @@ import com.holonplatform.core.property.PropertyBox;
 import com.holonplatform.core.property.PropertySet;
 import com.holonplatform.datastore.jpa.JpaWriteOption;
 import com.holonplatform.datastore.jpa.config.JpaDatastoreCommodityContext;
+import com.holonplatform.datastore.jpa.context.EntityManagerOperation;
 import com.holonplatform.datastore.jpa.context.JpaOperationContext;
 import com.holonplatform.datastore.jpa.internal.JpaDatastoreLogger;
 import com.holonplatform.datastore.jpa.jpql.context.JPQLResolutionContext;
@@ -44,7 +47,7 @@ public class JpaBulkInsert extends AbstractBulkInsert {
 
 	private static final long serialVersionUID = -2659369449773116773L;
 
-	private final static Logger LOGGER = JpaDatastoreLogger.create();
+	private static final Logger LOGGER = JpaDatastoreLogger.create();
 
 	// Commodity factory
 	@SuppressWarnings("serial")
@@ -61,7 +64,7 @@ public class JpaBulkInsert extends AbstractBulkInsert {
 		}
 	};
 
-	private final JpaOperationContext operationContext;
+	private final transient JpaOperationContext operationContext;
 
 	public JpaBulkInsert(JpaOperationContext operationContext) {
 		super();
@@ -72,7 +75,6 @@ public class JpaBulkInsert extends AbstractBulkInsert {
 	 * (non-Javadoc)
 	 * @see com.holonplatform.core.datastore.operation.ExecutableOperation#execute()
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public OperationResult execute() {
 		// validate
@@ -89,64 +91,94 @@ public class JpaBulkInsert extends AbstractBulkInsert {
 		// get entity class
 		final Class<?> entity = context.resolveOrFail(getConfiguration().getTarget(), JpaEntity.class).getEntityClass();
 
-		return operationContext.withEntityManager(entityManager -> {
+		return operationContext.withEntityManager((EntityManagerOperation<OperationResult>) entityManager -> executeInternal(entityManager, propertySet, entity));
+	}
 
-			// try to detect batch size
-			int batchSize = operationContext.getDialect().getBatchSizeConfigurationProperty().map(propertyName -> {
-				Map<String, Object> properties = entityManager.getEntityManagerFactory().getProperties();
-				if (properties != null) {
-					try {
-						Object batchSizeValue = properties.get(propertyName);
-						if (batchSizeValue != null) {
-							if (batchSizeValue instanceof Number number) {
-								return number.intValue();
-							} else if (batchSizeValue instanceof String string) {
-								return Integer.valueOf(string);
-							}
-						}
-					} catch (Exception e) {
-						LOGGER.warn("Failed to detect batch insert size", e);
-					}
-				}
-				return 0;
-			}).orElse(0);
+	/**
+	 * Execute the bulk insert operations within the given {@link EntityManager}.
+	 * @param entityManager EntityManager to use
+	 * @param propertySet Operation property set
+	 * @param entity Entity class
+	 * @return Operation result
+	 * @throws ReflectiveOperationException If an entity instance cannot be created
+	 */
+	private OperationResult executeInternal(EntityManager entityManager, PropertySet<?> propertySet, Class<?> entity)
+			throws ReflectiveOperationException {
 
-			// Bean property set
-			final BeanPropertySet<Object> set = operationContext.getBeanIntrospector().getPropertySet(entity);
+		// try to detect batch size
+		final int batchSize = detectBatchSize(entityManager);
 
-			int i = 0;
-			for (PropertyBox value : getConfiguration().getValues()) {
+		// Bean property set
+		final BeanPropertySet<Object> set = operationContext.getBeanIntrospector().getPropertySet(entity);
 
-				PropertyBox box = PropertyBox.builder(propertySet).invalidAllowed(true).build();
-				propertySet.forEach(property -> {
-					if (value.contains(property)) {
-						box.setValue(property, value.getValue(property));
-					}
-				});
+		int i = 0;
+		for (PropertyBox value : getConfiguration().getValues()) {
 
-				// persist entity
-				entityManager.persist(set.write(box, entity.newInstance()));
+			// persist entity
+			entityManager.persist(set.write(buildBox(propertySet, value), entity.getDeclaredConstructor().newInstance()));
 
-				operationContext.traceOperation("Bulk PERSIST entity [" + entity.getName() + "]");
+			operationContext.traceOperation("Bulk PERSIST entity [" + entity.getName() + "]");
 
-				// check flush
-				if (batchSize > 0 && i % batchSize == 0) {
-					entityManager.flush();
-					entityManager.clear();
-				}
-			}
-
-			// check auto-flush
-			if (operationContext.isAutoFlush() || getConfiguration().hasWriteOption(JpaWriteOption.FLUSH)) {
+			// check flush
+			if (batchSize > 0 && i % batchSize == 0) {
 				entityManager.flush();
-
-				operationContext.traceOperation("FLUSH EntityManager");
+				entityManager.clear();
 			}
+			i++;
+		}
 
-			return OperationResult.builder().type(OperationType.INSERT)
-					.affectedCount(getConfiguration().getValues().size()).build();
+		// check auto-flush
+		if (operationContext.isAutoFlush() || getConfiguration().hasWriteOption(JpaWriteOption.FLUSH)) {
+			entityManager.flush();
 
+			operationContext.traceOperation("FLUSH EntityManager");
+		}
+
+		return OperationResult.builder().type(OperationType.INSERT)
+				.affectedCount(getConfiguration().getValues().size()).build();
+	}
+
+	/**
+	 * Detect the configured JDBC batch size, if available.
+	 * @param entityManager EntityManager to inspect
+	 * @return The detected batch size, or <code>0</code> if not configured
+	 */
+	private int detectBatchSize(EntityManager entityManager) {
+		return operationContext.getDialect().getBatchSizeConfigurationProperty().map(propertyName -> {
+			Map<String, Object> properties = entityManager.getEntityManagerFactory().getProperties();
+			if (properties == null) {
+				return 0;
+			}
+			try {
+				Object batchSizeValue = properties.get(propertyName);
+				if (batchSizeValue instanceof Number number) {
+					return number.intValue();
+				} else if (batchSizeValue instanceof String string) {
+					return Integer.valueOf(string);
+				}
+			} catch (Exception e) {
+				LOGGER.warn("Failed to detect batch insert size", e);
+			}
+			return 0;
+		}).orElse(0);
+	}
+
+	/**
+	 * Build a {@link PropertyBox} containing the values of the given source box that belong to the operation property
+	 * set.
+	 * @param propertySet Operation property set
+	 * @param value Source value box
+	 * @return The built property box
+	 */
+	@SuppressWarnings("unchecked")
+	private static PropertyBox buildBox(PropertySet<?> propertySet, PropertyBox value) {
+		PropertyBox box = PropertyBox.builder(propertySet).invalidAllowed(true).build();
+		propertySet.forEach(property -> {
+			if (value.contains(property)) {
+				box.setValue(property, value.getValue(property));
+			}
 		});
+		return box;
 	}
 
 }

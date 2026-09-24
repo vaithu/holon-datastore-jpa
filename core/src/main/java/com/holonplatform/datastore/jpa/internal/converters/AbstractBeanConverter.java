@@ -55,7 +55,7 @@ public abstract class AbstractBeanConverter<Q, T> extends AbstractResultConverte
 	 * @param selection Selection paths (not null)
 	 * @param selectionAlias Selection aliases
 	 */
-	public AbstractBeanConverter(BeanPropertySet<T> beanPropertySet, Path<?>[] selection,
+	protected AbstractBeanConverter(BeanPropertySet<T> beanPropertySet, Path<?>[] selection,
 			Map<Path<?>, String> selectionAlias) {
 		super();
 		ObjectUtils.argumentNotNull(beanPropertySet, "BeanPropertySet must be not null");
@@ -88,8 +88,8 @@ public abstract class AbstractBeanConverter<Q, T> extends AbstractResultConverte
 
 		T instance;
 		try {
-			instance = beanPropertySet.getBeanClass().newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			instance = beanPropertySet.getBeanClass().getDeclaredConstructor().newInstance();
+		} catch (ReflectiveOperationException e) {
 			throw new DataAccessException("Failed to istantiate bean class [" + beanPropertySet.getBeanClass() + "]",
 					e);
 		}

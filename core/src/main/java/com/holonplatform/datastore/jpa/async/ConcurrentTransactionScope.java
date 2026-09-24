@@ -17,7 +17,6 @@ package com.holonplatform.datastore.jpa.async;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +26,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Concurrent transaction scope for executing multiple database operations atomically
@@ -147,16 +147,24 @@ public class ConcurrentTransactionScope implements AutoCloseable {
 			throw new IllegalStateException("Transaction scope is closed");
 		}
 
-		// Execute all tasks in parallel
+		List<CompletableFuture<Void>> futures = executeTasks();
+		awaitCompletion(futures);
+		checkFailures();
+	}
+
+	/**
+	 * Execute all submitted tasks in parallel, limiting concurrency to the configured degree of parallelism.
+	 * @return The list of pending futures
+	 * @throws InterruptedException if the operation is interrupted or times out
+	 */
+	private List<CompletableFuture<Void>> executeTasks() throws InterruptedException {
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		for (Task task : tasks) {
 			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 				try {
 					task.operation.run();
-					task.completed = true;
 				} catch (Exception e) {
-					task.error = e;
-					task.completed = true;
+					task.error.set(e);
 				}
 			}, executor);
 
@@ -164,37 +172,58 @@ public class ConcurrentTransactionScope implements AutoCloseable {
 
 			// Limit concurrency to degreeOfParallelism
 			if (futures.size() >= degreeOfParallelism) {
-				try {
-					CompletableFuture.anyOf(futures.toArray(new CompletableFuture[0]))
-						.get(timeoutMs, TimeUnit.MILLISECONDS);
-					futures.removeIf(CompletableFuture::isDone);
-				} catch (TimeoutException e) {
-					throw new InterruptedException("Transaction timeout after " + timeoutMs + "ms");
-				} catch (Exception e) {
-					Thread.currentThread().interrupt();
-					throw new InterruptedException("Interrupted during transaction execution: " + e.getMessage());
-				}
+				awaitAny(futures);
 			}
 		}
+		return futures;
+	}
 
-		// Wait for all remaining futures
-		if (!futures.isEmpty()) {
-			try {
-				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-					.get(timeoutMs, TimeUnit.MILLISECONDS);
-			} catch (TimeoutException e) {
-				throw new InterruptedException("Transaction timeout after " + timeoutMs + "ms");
-			} catch (Exception e) {
-				Thread.currentThread().interrupt();
-				throw new InterruptedException("Interrupted during transaction completion: " + e.getMessage());
-			}
+	/**
+	 * Wait until at least one of the given futures completes, then remove the completed ones.
+	 * @param futures Pending futures
+	 * @throws InterruptedException if the operation is interrupted or times out
+	 */
+	private void awaitAny(List<CompletableFuture<Void>> futures) throws InterruptedException {
+		try {
+			CompletableFuture.anyOf(futures.toArray(new CompletableFuture[0])).get(timeoutMs, TimeUnit.MILLISECONDS);
+			futures.removeIf(f -> f != null && f.isDone());
+		} catch (TimeoutException e) {
+			throw new InterruptedException("Transaction timeout after " + timeoutMs + "ms");
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+			throw new InterruptedException("Interrupted during transaction execution: " + e.getMessage());
 		}
+	}
 
-		// Check for failures
+	/**
+	 * Wait for all remaining futures to complete.
+	 * @param futures Pending futures
+	 * @throws InterruptedException if the operation is interrupted or times out
+	 */
+	private void awaitCompletion(List<CompletableFuture<Void>> futures) throws InterruptedException {
+		if (futures.isEmpty()) {
+			return;
+		}
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(timeoutMs, TimeUnit.MILLISECONDS);
+		} catch (TimeoutException e) {
+			throw new InterruptedException("Transaction timeout after " + timeoutMs + "ms");
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+			throw new InterruptedException("Interrupted during transaction completion: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Check the executed tasks for failures and raise an aggregated exception if any occurred.
+	 * @throws AggregatedTransactionException if any task failed
+	 */
+	private void checkFailures() throws AggregatedTransactionException {
 		Map<String, Throwable> failures = new LinkedHashMap<>();
 		for (Task task : tasks) {
-			if (task.error != null) {
-				failures.put(task.name, task.error);
+			Exception error = task.error.get();
+			if (error != null) {
+				failures.put(task.name, error);
 			}
 		}
 
@@ -292,8 +321,7 @@ public class ConcurrentTransactionScope implements AutoCloseable {
 	private static class Task {
 		final String name;
 		final Runnable operation;
-		volatile boolean completed = false;
-		volatile Exception error = null;
+		final AtomicReference<Exception> error = new AtomicReference<>();
 
 		Task(String name, Runnable operation) {
 			this.name = name;
